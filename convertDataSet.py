@@ -3,7 +3,10 @@ from pyspark.sql.functions import explode
 
 spark = SparkSession.builder.getOrCreate()
 
-# Create DF, which loads schema.
-postsDF = spark.read.format("xml").load("/data/stackoverflow/posts.zip")
-# Write DataFrame for later use.
-postsDF.write.parquet("stackoverflow/posts.parquet")
+def Convert(source, destination, row_element):
+    df = spark.read.format("xml").options(rowTag=row_element).load(source)
+    df.write.parquet(destination)
+
+
+# To do in pyspark, start with: pyspark --packages com.databricks:spark-xml_2.11:0.11.0
+Convert("Badges.xml", "Badges.parquet", "row")
