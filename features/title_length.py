@@ -1,2 +1,2 @@
-def feature_title_length(title):
+def title_length(title):
     return len(title)
