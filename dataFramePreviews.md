@@ -1,3 +1,14 @@
+# Data previews
+Data previews for the following tables:
+1. Badges
+2. Comments
+3. PostHistory
+4. PostLinks
+5. Posts
+6. Tags
+7. Users (todo)
+8. Votes (todo)
+
 ```
 >>> df = spark.read.parquet("/user/***REMOVED***/StackOverflow/Badges.parquet")
 >>> df.show()                                                                   
