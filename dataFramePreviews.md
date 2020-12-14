@@ -1,4 +1,5 @@
 # Data previews
+Easiest to read on GitHub: https://github.com/WeersProductions/MBDProject/blob/master/dataFramePreviews.md
 Data previews for the following tables:
 1. Badges
 2. Comments
