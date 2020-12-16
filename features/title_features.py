@@ -6,7 +6,8 @@ def title_features_df(spark):
         .select(["_Id", "_Title"]) \
         .dropna() \
         .withColumn('contains_questionmark', col("_Title").contains('?')) \
-        .withColumn('title_length', length(col("_Title")))
+        .withColumn('title_length', length(col("_Title"))) \
+        .drop("_Title")
 
     return df
 
