@@ -3,6 +3,7 @@ from pyspark.sql.functions import col, length
 
 spark = SparkSession.builder.getOrCreate()
 
+
 # Preprocessing
 
 def text_preprocess():
@@ -10,14 +11,18 @@ def text_preprocess():
     # e.g. to lowercase
     return text
 
+
 # Features
+
 
 def text_length_and_rules():
     df = spark.read.parquet("/user/***REMOVED***/StackOverflow/PostHistory.parquet") \
-    .select(['_Id','_Text','_PostHistoryTypeId']) \
-    .filter(col('_PostHistoryTypeId') == 1) \
-    .withColumn('text_length', length(col('_Text'))) \
-    .withColumn('has_rules', col('_Text').contains('---')) # TODO: check it's succeeded by whitespace, and whether it's not part of code or quotes
+        .select(['_Id', '_Text', '_PostHistoryTypeId']) \
+        .filter(col('_PostHistoryTypeId') == 1) \
+        .withColumn('text_length', length(col('_Text'))) \
+        .withColumn('has_rules', col('_Text').contains('---'))
+    # TODO: check it's succeeded by whitespace, and whether it's not part of code or quotes
+
     return df
 
 
