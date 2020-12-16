@@ -1,12 +1,9 @@
-from datetime import datetime
-
+from pyspark.sql.functions import col, to_timestamp
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col
-
-spark = SparkSession.builder.getOrCreate()
+from pyspark.sql.types import LongType
 
 
-def post_time():
+def post_time(spark):
     """
     Add a column `creation_seconds` to a given dataframe that indicates the amount of seconds since UNIX zero time that
     the post was created
@@ -16,6 +13,11 @@ def post_time():
     df = spark.read.parquet('/user/***REMOVED***/StackOverflow/Posts.parquet') \
         .select(['_Id', '_CreationDate']) \
         .dropna() \
-        .withColumn('creation_seconds', datetime.strptime(col('_CreationDate'), '%Y-%m-%dT%H:%M:%S.%f').strftime('%s'))
+        .withColumn('creation_seconds', to_timestamp(col('_CreationDate')).cast(LongType()))
 
     return df
+
+
+if __name__ == "__main__":
+    spark = SparkSession.builder.getOrCreate()
+    post_time(spark).show()
