@@ -9,3 +9,5 @@ def title_features_df():
         .dropna() \
         .withColumn('contains_questionmark', col("_Title").contains('?')) \
         .withColumn('title_length', length(col("_Title")))
+
+    return df
