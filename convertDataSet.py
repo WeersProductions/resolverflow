@@ -1,11 +1,12 @@
 from pyspark.sql import SparkSession
-# from pyspark.sql.functions import explode
+from pyspark.sql.functions import col
 
 spark = SparkSession.builder.getOrCreate()
 
 
 def Convert(source, destination, row_element):
-    df = spark.read.format("xml").options(rowTag=row_element).load(source)
+    df = spark.read.format("xml").options(rowTag=row_element).load(source) \
+            .filter(col("_PostTypeId") == 1)
     df.write.parquet(destination)
 
 

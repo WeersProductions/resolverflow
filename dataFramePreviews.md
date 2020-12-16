@@ -10,6 +10,8 @@ Data previews for the following tables:
 7. Users
 8. Votes
 
+You can find the database schema here: https://meta.stackexchange.com/questions/2677/database-schema-documentation-for-the-public-data-dump-and-sede 
+
 ```
 >>> df = spark.read.parquet("/user/***REMOVED***/StackOverflow/Badges.parquet")
 >>> df.show()                                                                   
