@@ -16,6 +16,12 @@ def user_age_df(spark):
 
     return df
 
+def user_question_amount(spark):
+    df_posts = spark.read.parquet("/user/***REMOVED***/StackOverflow/Posts.parquet") \
+        .select(["_Id", "_OwnerUserId"])
+    df_post_count = df_posts.select(col("_OwnerUserId").alias("UserId")).groupBy("UserId").count()
+    result = df_posts.join(df_post_count, df_posts._OwnerUserId == df_post_count.UserId).select(col("_Id"), col("count").alias("posts_amount"))
+
 
 if __name__ == "__main__":
     spark = SparkSession.builder.getOrCreate()
