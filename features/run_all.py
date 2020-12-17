@@ -1,8 +1,9 @@
 from pyspark.sql import SparkSession
 from title_features import title_features_df
 from number_of_tags import number_of_tags_df
+from post_time import post_time
 
-all_features = [title_features_df]
+all_features = [title_features_df, post_time]
 
 
 def get_feature_name(feature):
@@ -17,7 +18,7 @@ def run_all(spark):
         if complete_df == None:
             complete_df = new_df
         else:
-            complete_df.join(new_df, new_df["_Id"] == complete_df["_Id"])
+            complete_df = complete_df.join(new_df, "_Id")
 
     return complete_df
 
