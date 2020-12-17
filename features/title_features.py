@@ -1,6 +1,7 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, length
 
+
 def title_features_df(spark):
     """ Extract features from the title
 
