@@ -21,10 +21,8 @@ def tag_info_df(spark):
         .withColumn("_Tags", expr("substring(_Tags, 2, length(_Tags) - 2)")) \
         .withColumn("_Tags", split(col("_Tags"), "><")) \
         .withColumn("number_of_tags", when(size("_Tags") < 0, 0).otherwise(size("_Tags"))) \
-        .withColumn("contains_language_tag", array_intersect("_Tags", language_list_col)) \
-        .withColumn("contains_platform_tag", array_intersect("_Tags", platform_list_col)) \
-        .withColumn("contains_language_tag", size("contains_language_tag") > 0) \
-        .withColumn("contains_platform_tag", size("contains_platform_tag") > 0) \
+        .withColumn("contains_language_tag", size(array_intersect("_Tags", language_list_col)) > 0) \
+        .withColumn("contains_platform_tag", size(array_intersect("_Tags", platform_list_col)) > 0) \
         .drop("_Tags")
 
     return df
