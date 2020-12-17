@@ -3,7 +3,14 @@ from pyspark.sql.functions import array, array_intersect, col, expr, lit, size, 
 
 
 def tag_info_df(spark):
-    # Create lists of programming languages and platforms
+    """ Extract features from the tags of a post
+
+    Args:
+        spark (SparkSession): used to run queries and commands
+
+    Returns:
+        DataFrame: With columns [(post)_Id, number_of_tags, contains_language_tag, contains_platform_tag]
+    """
     language_list = ["django", "php"]
     language_list_col = array(*[lit(x) for x in language_list])
     platform_list = ["windows", "linux", "maccie"]
@@ -14,10 +21,10 @@ def tag_info_df(spark):
         .withColumn("_Tags", expr("substring(_Tags, 2, length(_Tags) - 2)")) \
         .withColumn("_Tags", split(col("_Tags"), "><")) \
         .withColumn("number_of_tags", when(size("_Tags") < 0, 0).otherwise(size("_Tags"))) \
-        .withColumn("language_tag", array_intersect("_Tags", language_list_col)) \
-        .withColumn("platform_tag", array_intersect("_Tags", platform_list_col)) \
-        .withColumn("language_tag", size("language_tag") > 0) \
-        .withColumn("platform_tag", size("platform_tag") > 0) \
+        .withColumn("contains_language_tag", array_intersect("_Tags", language_list_col)) \
+        .withColumn("contains_platform_tag", array_intersect("_Tags", platform_list_col)) \
+        .withColumn("contains_language_tag", size("contains_language_tag") > 0) \
+        .withColumn("contains_platform_tag", size("contains_platform_tag") > 0) \
         .drop("_Tags")
 
     return df
