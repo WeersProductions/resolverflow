@@ -1,46 +1,35 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import expr, split, size, array_intersect, when, array, lit
-
-spark = SparkSession.builder.getOrCreate()
+from pyspark.sql.functions import array, array_intersect, col, expr, lit, size, split, when
 
 
-def tag_info():
-    # A list of all programming languages
+def tag_info_df(spark):
+    """ Extract features from the tags of a post
+
+    Args:
+        spark (SparkSession): used to run queries and commands
+
+    Returns:
+        DataFrame: With columns [(post)_Id, number_of_tags, contains_language_tag, contains_platform_tag]
+    """
     language_list = ["django", "php"]
-
-    # Create a column list of programming languages
     language_list_col = array(*[lit(x) for x in language_list])
-
-    # A list of all platforms
     platform_list = ["windows", "linux", "maccie"]
-
-    # Create a column list of programming languages
     platform_list_col = array(*[lit(x) for x in platform_list])
 
-    # Get the right columns from the dataset
-    df1 = spark.read.parquet("/user/***REMOVED***/StackOverflow/Posts.parquet").select(["_Id", "_Tags"])
+    df = spark.read.parquet("/user/***REMOVED***/StackOverflow/Posts.parquet") \
+        .select(["_Id", "_Tags"]) \
+        .withColumn("_Tags", expr("substring(_Tags, 2, length(_Tags) - 2)")) \
+        .withColumn("_Tags", split(col("_Tags"), "><")) \
+        .withColumn("number_of_tags", when(size("_Tags") < 0, 0).otherwise(size("_Tags"))) \
+        .withColumn("contains_language_tag", array_intersect("_Tags", language_list_col)) \
+        .withColumn("contains_platform_tag", array_intersect("_Tags", platform_list_col)) \
+        .withColumn("contains_language_tag", size("contains_language_tag") > 0) \
+        .withColumn("contains_platform_tag", size("contains_platform_tag") > 0) \
+        .drop("_Tags")
 
-    # Remove first and last character from tag String
-    df2 = df1.withColumn("_Tags", expr("substring(_Tags, 2, length(_Tags) - 2)"))
+    return df
 
-    # Split the tag String
-    df3 = df2.withColumn("_Tags", split(df2["_Tags"], "><"))
 
-    # Get the number of tags
-    df4 = df3.withColumn("number_of_tags", when(size("_Tags") < 0, 0).otherwise(size("_Tags")))
-
-    # Match the tags with the list of languages
-    df5 = df4.withColumn("language_tag", array_intersect("_Tags", language_list_col))
-
-    # Match the tags with the list of platforms
-    df6 = df5.withColumn("platform_tag", array_intersect("_Tags", platform_list_col))
-
-    # Check if the tags contain any languages
-    df7 = df6.withColumn("language_tag", size("language_tag") > 0)
-
-    # Check if the tags contain any platforms
-    df8 = df7.withColumn("platform_tag", size("platform_tag") > 0)
-
-    df9 = df8.drop("_Tags")
-
-    return df9
+if __name__ == "__main__":
+    spark = SparkSession.builder.getOrCreate()
+    tag_info_df(spark).show()
