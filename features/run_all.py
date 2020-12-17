@@ -18,7 +18,7 @@ def run_all(spark):
     complete_df = None
     for feature in all_features:
         new_df = feature(spark)
-        if complete_df == None:
+        if complete_df is None:
             complete_df = new_df
         else:
             complete_df = complete_df.join(new_df, "_Id")
@@ -39,7 +39,7 @@ if __name__ == "__main__":
     spark = SparkSession.builder.getOrCreate()
 
     complete_df = run_all(spark)
-    if complete_df == None:
+    if complete_df is None:
         print("No features extracted.")
     elif len(sys.argv) > 2 and sys.argv[1]=='--file':
         complete_df.write.parquet(sys.argv[2])
