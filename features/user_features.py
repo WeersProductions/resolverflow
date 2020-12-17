@@ -2,6 +2,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, to_timestamp
 from pyspark.sql.types import LongType
 
+
 def user_age_df(spark):
     df_posts = spark.read.parquet("/user/***REMOVED***/StackOverflow/Posts.parquet") \
         .select(["_Id", "_CreationDate", "_OwnerUserId"]) \
