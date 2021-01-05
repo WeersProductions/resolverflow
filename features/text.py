@@ -1,5 +1,7 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, length
+import marko
+from collections import Counter
 
 spark = SparkSession.builder.getOrCreate()
 
@@ -24,6 +26,26 @@ def text_length_and_rules():
     # TODO: check it's succeeded by whitespace, and whether it's not part of code or quotes
 
     return df
+
+def count_formatting(text):
+    ''' Parses the text as Markdown and returns count of each formatting type '''
+    def get_children_types(elem):
+        if hasattr(elem, 'children'):
+            children = elem.children
+        else:
+            children = []
+        if type(children) == list:
+            result = Counter([type(child) for child in children])
+            for child in children:
+                result += get_children_types(child)
+        elif type(children) != str:
+            result = Counter([type(children)])
+        else:
+            result = Counter()
+        return result
+
+    md_tree = marko.parse(text)
+    md_types = get_children_types(md_tree)
 
 
 def has_bold():
