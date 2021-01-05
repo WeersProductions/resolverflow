@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, to_timestamp, when, sum
+from pyspark.sql.functions import col, to_timestamp, when, sum, count
 from pyspark.sql.types import LongType
 
 
@@ -13,7 +13,7 @@ def user_age_df(spark):
         .withColumnRenamed("_Id", "UserId")
     df = df_posts \
         .join(df_users, df_posts["_OwnerUserId"] == df_users["UserId"]) \
-        .withColumn('age', to_timestamp(col('_PostCreationDate')).cast(LongType()) - to_timestamp(col('_UserCreationDate')).cast(LongType())) \
+        .withColumn("age", to_timestamp(col("_PostCreationDate")).cast(LongType()) - to_timestamp(col("_UserCreationDate")).cast(LongType())) \
         .select(["_Id", "age"])
 
     return df
@@ -39,7 +39,19 @@ def user_question_amount(spark):
     return result
 
 
+def user_questions_answered(spark):
+    df_posts = spark.read.parquet("/user/***REMOVED***/StackOverflow/Posts.parquet") \
+        .select(["_Id", "_AcceptedAnswerId", "_PostTypeId", "_OwnerUserId"])
+    df_questions = df_posts.filter(col("_PostTypeId") == 1)
+    # df_answered = df_questions.where(col("_AcceptedAnswerId").isNotNull())
+
+    def count_answers(condition): return sum(when(condition, 1).otherwise(0))
+
+    return df_questions.groupBy("_OwnerUserId").agg(
+        count_answers(col("_AcceptedAnswerId").isNotNull()).alias("AnsweredQuestions"),
+        count("*").alias("TotalQuestions"))
+
+
 if __name__ == "__main__":
     spark = SparkSession.builder.getOrCreate()
-    # user_age_df(spark).show()
-    user_question_amount(spark).show()
+    user_questions_answered(spark).show()
