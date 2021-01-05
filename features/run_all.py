@@ -1,8 +1,9 @@
 from pyspark.sql import SparkSession
 from title_features import title_features_df
 from number_of_tags import number_of_tags_df
+from text import text_length_and_formatting
 
-all_features = [title_features_df]
+all_features = [title_features_df, text_length_and_formatting]
 
 
 def get_feature_name(feature):
