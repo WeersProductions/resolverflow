@@ -8,10 +8,11 @@ def user_age_df(spark):
         .select(["_Id", "_CreationDate", "_OwnerUserId"]) \
         .withColumnRenamed("_CreationDate", "_PostCreationDate")
     df_users = spark.read.parquet("/user/***REMOVED***/StackOverflow/Users.parquet") \
-        .select(["_AccountId", "_CreationDate"]) \
-        .withColumnRenamed("_CreationDate", "_UserCreationDate")
+        .select(["_Id", "_CreationDate"]) \
+        .withColumnRenamed("_CreationDate", "_UserCreationDate") \
+        .withColumnRenamed("_Id", "UserId")
     df = df_posts \
-        .join(df_users, df_posts["_OwnerUserId"] == df_users["_AccountId"]) \
+        .join(df_users, df_posts["_OwnerUserId"] == df_users["UserId"]) \
         .withColumn('age', to_timestamp(col('_PostCreationDate')).cast(LongType()) - to_timestamp(col('_UserCreationDate')).cast(LongType())) \
         .select(["_Id", "age"])
 
