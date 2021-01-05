@@ -17,6 +17,7 @@ def user_age_df(spark):
 
     return df
 
+
 def user_question_amount(spark):
     df_posts = spark.read.parquet("/user/***REMOVED***/StackOverflow/Posts.parquet") \
         .select(["_Id", "_OwnerUserId"])
