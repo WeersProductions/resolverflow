@@ -46,6 +46,6 @@ if __name__ == "__main__":
     if complete_df is None:
         print("No features extracted.")
     elif len(sys.argv) > 2 and sys.argv[1]=='--file':
-        complete_df.write.parquet(sys.argv[2])
+        complete_df.write.mode("overwrite").parquet(sys.argv[2])
     else:
         complete_df.show()

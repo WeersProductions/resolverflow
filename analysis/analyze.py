@@ -12,13 +12,14 @@ from pyspark.ml.evaluation import MulticlassClassificationEvaluator
 
 def load_feature_data(spark):
     feature_data = spark.read.parquet("/user/***REMOVED***/StackOverflow/output_stackoverflow.parquet")
-    feature_data = feature_data.filter(feature_data["IsQuestion"] == True)
+    feature_data = feature_data.filter(feature_data["is_question"])
     feature_data = feature_data.drop("_Text")
     return feature_data
 
 
 def calc_correlation(spark):
     """
+    Calculates the Pearson Correlation Coefficient
 
     Example result:
     ['_Id', 'contains_questionmark', 'title_length', 'HasAnswer', '_PostHistoryTypeId', 'number_of_characters', 'number_of_interpunction_characters', 'interpunction_ratio', 'number_of_lines', 'average_line_length', 'number_of_words', 'average_word_length', 'creation_seconds', 'number_of_tags', 'contains_language_tag', 'contains_platform_tag', 'age', 'posts_amount', 'IsQuestion']
@@ -162,7 +163,7 @@ def calc_correlation(spark):
     vector_col = "features"
     assembler = VectorAssembler(inputCols=feature_data.columns, outputCol=vector_col)
     df_vector = assembler.transform(feature_data).select(vector_col)
-    corr_mat = Correlation.corr(df_vector, vector_col).head()
+    corr_mat = Correlation.corr(df_vector, vector_col, "spearman").head()
     print(str(corr_mat[0]))
 
 
@@ -223,5 +224,5 @@ if __name__ == "__main__":
 
     print("Starting analysis.")
     spark = SparkSession.builder.getOrCreate()
-    # calc_correlation(spark)
+    calc_correlation(spark)
     try_decision_tree(spark)
