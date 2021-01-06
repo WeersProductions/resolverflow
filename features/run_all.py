@@ -2,12 +2,13 @@ import sys
 from user_features import user_age_df, user_question_amount
 from pyspark.sql import SparkSession
 from title_features import title_features_df
+from text_features import text_features_df
 from post_time import post_time
 from tag_info import tag_info_df
 
 # Define what features should be extracted and combined here.
 # If you add a new feature, be sure to import it correctly and pass it to the spark-submit command.
-all_features = [title_features_df, post_time, tag_info_df, user_age_df, user_question_amount]
+all_features = [title_features_df, text_features_df, post_time, tag_info_df, user_age_df, user_question_amount]
 
 
 def get_feature_name(feature):
