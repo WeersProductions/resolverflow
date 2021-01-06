@@ -30,7 +30,7 @@ def text_features_df(spark):
         .withColumn('average_line_length', col('number_of_characters') / col('number_of_lines')) \
         .withColumn('number_of_words', size(split(col('_Text'), r'\s'))) \
         .withColumn('average_word_length', col('number_of_characters') / col('number_of_words')) \
-        .drop('_Text, _PostHistoryTypeId')
+        .drop('_Text', '_PostHistoryTypeId')
     # TODO drop any more useless columns
     return df
 
