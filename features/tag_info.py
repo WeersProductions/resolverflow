@@ -9,7 +9,12 @@ def tag_info_df(spark):
         spark (SparkSession): used to run queries and commands
 
     Returns:
-        DataFrame: With columns [(post)_Id, number_of_tags, contains_language_tag, contains_platform_tag]
+        DataFrame: With columns [
+            (post)_Id,
+            number_of_tags,
+            contains_language_tag,
+            contains_platform_tag
+        ]
     """
     language_list = ["abap", "abc", "actionscript", "ada", "algol", "algol 58", "algol 60", "algol w", "algol 68",
                      "alice", "amiga e", "apex", "apl", "applescript", "argh!", "aargh!", "assembly",
