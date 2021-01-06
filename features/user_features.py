@@ -40,6 +40,11 @@ def user_question_amount(spark):
 
 
 def user_questions_answered(spark):
+    """
+    TODO:
+    This does not take into account the _CreationDate of the post. This means that questions that are accepted after a post is made, still count.
+    I think we should only count those that are answered till the _CreationDate for each post.
+    """
     df_posts = spark.read.parquet("/user/***REMOVED***/StackOverflow/Posts.parquet") \
         .select(["_Id", "_AcceptedAnswerId", "_PostTypeId", "_OwnerUserId"])
     df_questions = df_posts.filter(col("_PostTypeId") == 1)
