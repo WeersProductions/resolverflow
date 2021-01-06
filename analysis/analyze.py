@@ -2,10 +2,18 @@ from pyspark.sql import SparkSession
 from pyspark.ml.stat import Correlation
 from pyspark.ml.feature import VectorAssembler
 
+# Decision tree
+from pyspark.sql.functions import col
+from pyspark.ml import Pipeline
+from pyspark.ml.classification import DecisionTreeClassifier, RandomForestClassifier, GBTClassifier
+from pyspark.ml.feature import StringIndexer, VectorIndexer, IndexToString
+from pyspark.ml.evaluation import MulticlassClassificationEvaluator
+
 
 def load_feature_data(spark):
     feature_data = spark.read.parquet("/user/***REMOVED***/StackOverflow/output_stackoverflow.parquet")
-    feature_data = feature_data.drop('_CreationDate')
+    feature_data = feature_data.filter(feature_data["IsQuestion"] == True)
+    feature_data = feature_data.drop("_Text")
     return feature_data
 
 
@@ -13,32 +21,199 @@ def calc_correlation(spark):
     """
 
     Example result:
-    Starting analysis.
-    DenseMatrix([[ 1.        , -0.02928137,  0.1439355 ,  0.99713413,  0.01726689,
-              -0.04217593, -0.01772163,  0.35603309, -0.19260691],
-             [-0.02928137,  1.        ,  0.20510788, -0.03353036, -0.01087837,
-              -0.02527855,  0.00950739,  0.02436108,  0.05474339],
-             [ 0.1439355 ,  0.20510788,  1.        ,  0.14287865,  0.08616968,
-              -0.03689131,  0.00262839,  0.07985796, -0.01802226],
-             [ 0.99713413, -0.03353036,  0.14287865,  1.        ,  0.01809543,
-              -0.04080357, -0.01824413,  0.35537495, -0.19835699],
-             [ 0.01726689, -0.01087837,  0.08616968,  0.01809543,  1.        ,
-               0.0438001 ,  0.0758663 ,  0.01669125, -0.00117598],
-             [-0.04217593, -0.02527855, -0.03689131, -0.04080357,  0.0438001 ,
-               1.        , -0.02133353, -0.0556705 , -0.00313233],
-             [-0.01772163,  0.00950739,  0.00262839, -0.01824413,  0.0758663 ,
-              -0.02133353,  1.        , -0.00302532,  0.00215611],
-             [ 0.35603309,  0.02436108,  0.07985796,  0.35537495,  0.01669125,
-              -0.0556705 , -0.00302532,  1.        ,  0.01096396],
-             [-0.19260691,  0.05474339, -0.01802226, -0.19835699, -0.00117598,
-              -0.00313233,  0.00215611,  0.01096396,  1.        ]])
+    ['_Id', 'contains_questionmark', 'title_length', 'HasAnswer', '_PostHistoryTypeId', 'number_of_characters', 'number_of_interpunction_characters', 'interpunction_ratio', 'number_of_lines', 'average_line_length', 'number_of_words', 'average_word_length', 'creation_seconds', 'number_of_tags', 'contains_language_tag', 'contains_platform_tag', 'age', 'posts_amount', 'IsQuestion']
+    DenseMatrix([[  1.00000000e+00,  -3.23648297e-02,   1.36629899e-01,
+               -1.94351632e-01,              nan,   2.20971673e-02,
+               -6.43364684e-02,  -7.79819884e-02,  -2.84092244e-03,
+                2.21063239e-02,   1.41078529e-02,   1.28598260e-03,
+                9.97103954e-01,   1.80844989e-02,   3.25580493e-02,
+               -6.52822255e-02,   3.62689766e-01,  -1.82437362e-01,
+                           nan],
+             [ -3.23648297e-02,   1.00000000e+00,   2.07046487e-01,
+                4.16470609e-02,              nan,  -7.25951761e-04,
+                5.07786229e-03,   5.85491689e-03,   2.77075708e-04,
+               -7.27358292e-04,   1.20871645e-04,  -1.21060492e-03,
+               -3.65967532e-02,  -1.07925451e-02,  -3.79321324e-04,
+               -3.63010816e-03,   2.69849299e-02,   5.71539737e-02,
+                           nan],
+             [  1.36629899e-01,   2.07046487e-01,   1.00000000e+00,
+               -4.03369767e-02,              nan,   2.87322590e-03,
+               -6.66192943e-03,  -8.17773729e-03,  -1.00853930e-03,
+                2.87628941e-03,   1.88385649e-03,  -4.16745085e-04,
+                1.35612346e-01,   8.64241451e-02,  -1.58040521e-02,
+                2.43823586e-02,   7.88967451e-02,  -1.49647350e-02,
+                           nan],
+             [ -1.94351632e-01,   4.16470609e-02,  -4.03369767e-02,
+                1.00000000e+00,              nan,  -4.21452094e-03,
+                1.50102344e-02,   1.79410239e-02,   6.84993494e-04,
+               -4.21480835e-03,  -1.70406510e-03,  -2.02358099e-03,
+               -1.96640740e-01,  -4.26913537e-03,   7.01465993e-02,
+               -3.12794957e-02,  -1.26410604e-02,   1.11902271e-01,
+                           nan],
+             [             nan,              nan,              nan,
+                           nan,   1.00000000e+00,              nan,
+                           nan,              nan,              nan,
+                           nan,              nan,              nan,
+                           nan,              nan,              nan,
+                           nan,              nan,              nan,
+                           nan],
+             [  2.20971673e-02,  -7.25951761e-04,   2.87322590e-03,
+               -4.21452094e-03,              nan,   1.00000000e+00,
+                3.51495566e-01,   6.81855464e-02,   1.93821494e-03,
+                9.99993205e-01,   8.88606137e-01,   1.31968517e-02,
+                2.20005964e-02,   6.94228070e-05,   5.07397936e-04,
+               -1.28448322e-03,   8.28429000e-03,  -4.42951040e-03,
+                           nan],
+             [ -6.43364684e-02,   5.07786229e-03,  -6.66192943e-03,
+                1.50102344e-02,              nan,   3.51495566e-01,
+                1.00000000e+00,   8.82023939e-01,   1.90760064e-03,
+                3.51489161e-01,   2.70235726e-01,   1.04250036e-01,
+               -6.53932741e-02,  -2.47505006e-03,  -3.96491021e-03,
+                2.10525109e-03,  -2.38999581e-02,   1.44543207e-02,
+                           nan],
+             [ -7.79819884e-02,   5.85491689e-03,  -8.17773729e-03,
+                1.79410239e-02,              nan,   6.81855464e-02,
+                8.82023939e-01,   1.00000000e+00,   1.72594997e-03,
+                6.81823006e-02,   3.55072988e-02,   7.69486398e-02,
+               -7.92360119e-02,  -2.47590558e-03,  -4.84524536e-03,
+                2.65022259e-03,  -2.87892037e-02,   1.75612876e-02,
+                           nan],
+             [ -2.84092244e-03,   2.77075708e-04,  -1.00853930e-03,
+                6.84993494e-04,              nan,   1.93821494e-03,
+                1.90760064e-03,   1.72594997e-03,   1.00000000e+00,
+               -1.36547468e-03,   2.95619045e-03,  -1.66108245e-03,
+               -3.22863670e-03,   2.72838426e-04,   1.58672258e-03,
+                7.46106080e-04,  -1.02576817e-03,   1.30524624e-03,
+                           nan],
+             [  2.21063239e-02,  -7.27358292e-04,   2.87628941e-03,
+               -4.21480835e-03,              nan,   9.99993205e-01,
+                3.51489161e-01,   6.81823006e-02,  -1.36547468e-03,
+                1.00000000e+00,   8.88595744e-01,   1.32015875e-02,
+                2.20107171e-02,   6.83581617e-05,   5.02158398e-04,
+               -1.28811911e-03,   8.28726080e-03,  -4.43347549e-03,
+                           nan],
+             [  1.41078529e-02,   1.20871645e-04,   1.88385649e-03,
+               -1.70406510e-03,              nan,   8.88606137e-01,
+                2.70235726e-01,   3.55072988e-02,   2.95619045e-03,
+                8.88595744e-01,   1.00000000e+00,  -3.74130345e-01,
+                1.36362652e-02,  -2.75775777e-04,   6.13867206e-05,
+               -1.37872541e-03,   5.63599384e-03,  -1.50477215e-03,
+                           nan],
+             [  1.28598260e-03,  -1.21060492e-03,  -4.16745085e-04,
+               -2.02358099e-03,              nan,   1.31968517e-02,
+                1.04250036e-01,   7.69486398e-02,  -1.66108245e-03,
+                1.32015875e-02,  -3.74130345e-01,   1.00000000e+00,
+                1.92128907e-03,   7.90916515e-04,   8.19145394e-04,
+                1.50968987e-03,  -3.13012169e-04,  -2.49162738e-03,
+                           nan],
+             [  9.97103954e-01,  -3.65967532e-02,   1.35612346e-01,
+               -1.96640740e-01,              nan,   2.20005964e-02,
+               -6.53932741e-02,  -7.92360119e-02,  -3.22863670e-03,
+                2.20107171e-02,   1.36362652e-02,   1.92128907e-03,
+                1.00000000e+00,   1.89194489e-02,   3.32342637e-02,
+               -6.23211546e-02,   3.61973801e-01,  -1.88036054e-01,
+                           nan],
+             [  1.80844989e-02,  -1.07925451e-02,   8.64241451e-02,
+               -4.26913537e-03,              nan,   6.94228070e-05,
+               -2.47505006e-03,  -2.47590558e-03,   2.72838426e-04,
+                6.83581617e-05,  -2.75775777e-04,   7.90916515e-04,
+                1.89194489e-02,   1.00000000e+00,   1.98270937e-01,
+                1.35266977e-01,   1.74938227e-02,  -7.66032362e-05,
+                           nan],
+             [  3.25580493e-02,  -3.79321324e-04,  -1.58040521e-02,
+                7.01465993e-02,              nan,   5.07397936e-04,
+               -3.96491021e-03,  -4.84524536e-03,   1.58672258e-03,
+                5.02158398e-04,   6.13867206e-05,   8.19145394e-04,
+                3.32342637e-02,   1.98270937e-01,   1.00000000e+00,
+               -1.40205092e-01,  -5.38021784e-02,   5.58124325e-04,
+                           nan],
+             [ -6.52822255e-02,  -3.63010816e-03,   2.43823586e-02,
+               -3.12794957e-02,              nan,  -1.28448322e-03,
+                2.10525109e-03,   2.65022259e-03,   7.46106080e-04,
+               -1.28811911e-03,  -1.37872541e-03,   1.50968987e-03,
+               -6.23211546e-02,   1.35266977e-01,  -1.40205092e-01,
+                1.00000000e+00,  -2.67746676e-02,  -2.93093008e-03,
+                           nan],
+             [  3.62689766e-01,   2.69849299e-02,   7.88967451e-02,
+               -1.26410604e-02,              nan,   8.28429000e-03,
+               -2.38999581e-02,  -2.87892037e-02,  -1.02576817e-03,
+                8.28726080e-03,   5.63599384e-03,  -3.13012169e-04,
+                3.61973801e-01,   1.74938227e-02,  -5.38021784e-02,
+               -2.67746676e-02,   1.00000000e+00,   1.72441098e-02,
+                           nan],
+             [ -1.82437362e-01,   5.71539737e-02,  -1.49647350e-02,
+                1.11902271e-01,              nan,  -4.42951040e-03,
+                1.44543207e-02,   1.75612876e-02,   1.30524624e-03,
+               -4.43347549e-03,  -1.50477215e-03,  -2.49162738e-03,
+               -1.88036054e-01,  -7.66032362e-05,   5.58124325e-04,
+               -2.93093008e-03,   1.72441098e-02,   1.00000000e+00,
+                           nan],
+             [             nan,              nan,              nan,
+                           nan,              nan,              nan,
+                           nan,              nan,              nan,
+                           nan,              nan,              nan,
+                           nan,              nan,              nan,
+                           nan,              nan,              nan,
+                1.00000000e+00]])
     """
     feature_data = load_feature_data(spark)
+    print("-- Calculating correlation --")
+    print(feature_data.columns)
     vector_col = "features"
     assembler = VectorAssembler(inputCols=feature_data.columns, outputCol=vector_col)
     df_vector = assembler.transform(feature_data).select(vector_col)
     corr_mat = Correlation.corr(df_vector, vector_col).head()
     print(str(corr_mat[0]))
+
+
+def try_decision_tree(spark):
+    """
+    +--------------+-----+--------------------+
+    |predictedLabel|label|            features|
+    +--------------+-----+--------------------+
+    |             0|    0|(8,[0,1,2,3],[1.0...|
+    |             0|    0|(8,[0,1,2,3],[1.0...|
+    |             0|    0|(8,[0,1,2,3],[1.0...|
+    |             0|    0|(8,[0,1,2,3],[1.0...|
+    |             0|    0|(8,[0,1,2,3],[1.0...|
+    +--------------+-----+--------------------+
+    only showing top 5 rows
+
+    Test Error = 0.371438
+    DecisionTreeClassificationModel (uid=DecisionTreeClassifier_fc4359bba0c0) of depth 5 with 19 nodes
+    """
+    print("-- Calculating Random Forest --")
+    # Create two columns, 'label' and 'features'. Label is true or false, features is a vector of values.
+    original_label_col = "HasAnswer"
+    label_col = "label"
+    vector_col = "features"
+    feature_col_names = ["contains_questionmark", "title_length", "creation_seconds", "number_of_tags", "contains_language_tag", "contains_platform_tag", "age", "posts_amount"]
+
+    feature_data = load_feature_data(spark)
+    feature_data = feature_data.withColumnRenamed(original_label_col, label_col)
+    feature_data = feature_data.withColumn(label_col, col(label_col).cast("integer"))
+    assembler = VectorAssembler(inputCols=feature_col_names, outputCol=vector_col)
+    data = assembler.transform(feature_data).select(label_col, vector_col)
+    labelIndexer = StringIndexer(inputCol=label_col, outputCol="indexedLabel").fit(data)
+    featureIndexer = VectorIndexer(inputCol=vector_col, outputCol="indexedFeatures", maxCategories=4).fit(data)
+
+    (trainingData, testData) = data.randomSplit([0.8, 0.2])
+
+    # dt = DecisionTreeClassifier(labelCol="indexedLabel", featuresCol="indexedFeatures")
+    # dt = RandomForestClassifier(labelCol="indexedLabel", featuresCol="indexedFeatures", numTrees=10)
+    dt = GBTClassifier(labelCol="indexedLabel", featuresCol="indexedFeatures", maxIter=10)
+    # Convert indexed labels back to original labels.
+    labelConverter = IndexToString(inputCol="prediction", outputCol="predictedLabel",labels=labelIndexer.labels)
+    pipeline = Pipeline(stages=[labelIndexer, featureIndexer, dt, labelConverter])
+    model = pipeline.fit(trainingData)
+    predictions = model.transform(testData)
+    predictions.select("predictedLabel", "label", "features").show(5)
+
+    evaluator = MulticlassClassificationEvaluator(labelCol="indexedLabel", predictionCol="prediction", metricName="accuracy")
+    accuracy = evaluator.evaluate(predictions)
+    print("Test Error = %g " % (1.0 - accuracy))
+    treeModel = model.stages[2]
+    print(treeModel)
 
 
 if __name__ == "__main__":
@@ -48,4 +223,5 @@ if __name__ == "__main__":
 
     print("Starting analysis.")
     spark = SparkSession.builder.getOrCreate()
-    calc_correlation(spark)
+    # calc_correlation(spark)
+    try_decision_tree(spark)
