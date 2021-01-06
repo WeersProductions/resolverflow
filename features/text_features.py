@@ -24,7 +24,7 @@ def text_features_df(spark):
         .select(['_Id', '_Text', '_PostHistoryTypeId']) \
         .filter(col('_PostHistoryTypeId') == 1) \
         .withColumn('number_of_characters', length(col('_Text'))) \
-        .withColumn('number_of_interpunction_characters', size(split(col('_Text'), r'[-[\]{}()*+?.,\\^$|#]')) - 1) \
+        .withColumn('number_of_interpunction_characters', size(split(col('_Text'), r'[-\[\]{}()*+?.,\\^$|#]')) - 1) \
         .withColumn('interpunction_ratio', col('number_of_interpunction_characters') / col('number_of_characters')) \
         .withColumn('number_of_lines', size(split(col('_Text'), r'\n'))) \
         .withColumn('average_line_length', col('number_of_characters') / col('number_of_lines')) \
