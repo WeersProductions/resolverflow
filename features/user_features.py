@@ -14,7 +14,7 @@ def user_age_df(spark):
     df = df_posts \
         .join(df_users, df_posts["_OwnerUserId"] == df_users["UserId"]) \
         .withColumn("age", to_timestamp(col("_PostCreationDate")).cast(LongType()) - to_timestamp(col("_UserCreationDate")).cast(LongType())) \
-        .select(["_Id", "age"])
+        .select(["_Id", "user_age"])
 
     return df
 
