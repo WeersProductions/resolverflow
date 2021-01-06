@@ -32,7 +32,7 @@ def run_all(spark):
 
 if __name__ == "__main__":
     """
-    Run this using: spark-submit --master yarn --deploy-mode cluster --conf spark.dynamicAllocation.maxExecutors=10 --name dreamteam --py-files title_features.py,text_features.py,post_time.py,tag_info.py,user_features.py,post_answered.py run_all.py --file "StackOverflow/output_stackoverflow.parquet" 2> /dev/null
+    Run this using: spark-submit --master yarn --deploy-mode cluster --conf spark.dynamicAllocation.maxExecutors=10 --name dreamteam --py-files title_features.py,text_features.py,post_time.py,tag_info.py,user_features.py,post_answered.py,post_is_question.py run_all.py --file "StackOverflow/output_stackoverflow.parquet" 2> /dev/null
 
     --py-files, a list of python files that are imported from this file.
 
