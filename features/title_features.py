@@ -9,13 +9,16 @@ def title_features_df(spark):
         spark (SparkSession): used to run queries and commands
 
     Returns:
-        DataFrame: With columns [(post)_Id, contains_questionmark, title_length]
+        DataFrame: With columns [
+            (post)_Id, title_contains_questionmark,
+            title_number_of_characters
+        ]
     """
     df = spark.read.parquet("/user/***REMOVED***/StackOverflow/Posts.parquet") \
         .select(["_Id", "_Title"]) \
         .dropna() \
-        .withColumn('contains_questionmark', col("_Title").contains('?')) \
-        .withColumn('title_length', length(col("_Title"))) \
+        .withColumn('title_contains_questionmark', col("_Title").contains('?')) \
+        .withColumn('title_number_of_characters', length(col("_Title"))) \
         .drop("_Title")
 
     return df
