@@ -1,4 +1,5 @@
 from pyspark.sql import SparkSession
+
 # bucketby
 
 
@@ -9,24 +10,26 @@ if PLOT_GRAPHS:
     import matplotlib.pyplot as plt
 
 
-def mass_apply(dataframe, *functions):
+INTEGER_FEATURES = ["title_number_of_characters", "number_of_characters", "number_of_interpunction_characters",
+                    "number_of_lines", "number_of_words", "number_of_tags", "posts_amount", "answered_posts_amount"]
+FLOAT_FEATURES = ["interpunction_ratio", "average_line_length", "average_word_length", "creation_seconds",
+                  "user_age"]
+BOOLEAN_FEATURES = []
+
+
+def mass_apply(dataframe, **functions):
     """
     Takes a dataframe of a single column, and creates a new column for every function given
 
     Args:
         dataframe: single-column dataframe to be processed
-        *functions: all functions that are to be applied
+        **functions: all functions that are to be applied, with as key the column to be applied on
 
     Returns:
         dataframe with one extra column for every function that was given as input with its results
     """
 
-    result = dataframe
-
-    for func in functions:
-        result.flatMap(func)  # no way dat dit werkt, maar ik bedoel het goed
-
-    return result
+    return dataframe.agg(**functions)
 
 
 def bucketize(dataframe, bucket_size=100):
@@ -37,26 +40,20 @@ def bucketize(dataframe, bucket_size=100):
 
 def create_plots(spark):
     """
-        Create a histogram for each feature
+    Create a histogram for each feature
 
-        Args:
-            dataframe: single-column dataframe to be processed
-            *functions: all functions that are to be applied
+    Args:
+        dataframe: single-column dataframe to be processed
+        *functions: all functions that are to be applied
 
-        Returns:
-            dataframe with one extra column for every function that was given as input with its results
-        """
-
-    integer_features = ["title_number_of_characters", "number_of_characters", "number_of_interpunction_characters",
-                       "number_of_lines", "number_of_words", "number_of_tags", "posts_amount", "answered_posts_amount"]
-    float_features = ["interpunction_ratio", "average_line_length", "average_word_length", "creation_seconds",
-                         "user_age"]
-    boolean_features = []
+    Returns:
+        dataframe with one extra column for every function that was given as input with its results
+    """
 
     all_features = spark.read.parquet("/user/***REMOVED***/StackOverflow/output_stackoverflow.parquet")
     all_features = all_features.filter(all_features["is_question"])
 
-    for feature in integer_features:
+    for feature in INTEGER_FEATURES + FLOAT_FEATURES:
         for resolved in [True, False]:
             feature_data = None
             if resolved:
@@ -78,10 +75,7 @@ def create_plots(spark):
 
             if PLOT_GRAPHS:
                 # Plot the histogram
-                if resolved:
-                    label_name = 'resolved'
-                else:
-                    label_name = 'not resolved'
+                label_name = 'Resolved' if resolved else 'Not resolved'
                 plt.hist(range(len(histogram)), len(histogram), weights=histogram, alpha=0.5, label=label_name)
 
         if PLOT_GRAPHS:
