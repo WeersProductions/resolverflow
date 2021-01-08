@@ -1,7 +1,6 @@
 from pyspark.sql import SparkSession
 from pyspark.ml.feature import QuantileDiscretizer
 from pyspark.sql.functions import mean, col
-import numpy as np
 
 feature_list = ["title_number_of_characters", "number_of_characters", "number_of_interpunction_characters", "interpunction_ratio", "number_of_lines", "average_line_length", "number_of_words", "average_word_length", "creation_seconds", "number_of_tags", "user_age", "posts_amount", "answered_posts_amount"]
 
@@ -50,14 +49,18 @@ def create_scatter_data(spark):
     data_points = None
     for c in feature_list:
         bucket_column = "buckets_" + c
-        feature = feature_data_buckets.select([c, bucket_column]).groupBy(bucket_column).agg(mean(c).alias(c)).withColumnRenamed(bucket_column, "bucket_id")
+        feature = feature_data_buckets \
+            .select([c, bucket_column]) \
+            .groupBy(bucket_column) \
+            .agg(mean(c).alias(c)) \
+            .withColumnRenamed(bucket_column, "bucket_id")
         if data_points == None:
             data_points = feature
         else:
             data_points = data_points.join(feature, "bucket_id", "outer")
 
     data_points = data_points.sort(col("bucket_id").asc())
-    return data_points.collect()
+    return data_points
 
 
 if __name__ == "__main__":
@@ -65,5 +68,4 @@ if __name__ == "__main__":
     spark = SparkSession.builder.getOrCreate()
 
     scatter_points = create_scatter_data(spark)
-    scatter_points = np.array(scatter_points)
-    print(scatter_points)
+    scatter_points.write.mode("overwrite").parquet("StackOverflow/scatter_points.parquet")
