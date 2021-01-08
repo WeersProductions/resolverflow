@@ -1,6 +1,12 @@
-import matplotlib.pyplot as plt
 from pyspark.sql import SparkSession
 # bucketby
+
+
+PLOT_GRAPHS = False
+DEBUG = False
+
+if PLOT_GRAPHS:
+    import matplotlib.pyplot as plt
 
 
 def mass_apply(dataframe, *functions):
@@ -52,6 +58,7 @@ def create_plots(spark):
 
     for feature in integer_features:
         for resolved in [True, False]:
+            feature_data = None
             if resolved:
                 feature_data = all_features.filter(all_features["has_answer"] is resolved) \
                     .select(feature) \
@@ -65,16 +72,20 @@ def create_plots(spark):
             # Add zero counts to empty values
             histogram = [counts[values.index(i)] if i in values else 0 for i in range(max(values))]
 
-            # For testing
-            print(histogram)
+            if DEBUG:
+                # For testing
+                print(histogram)
 
-            # Plot the histogram
-            if resolved:
-                label_name = 'resolved'
-            else:
-                label_name = 'not resolved'
-            plt.hist(range(len(histogram)), len(histogram), weights=histogram, alpha=0.5, label=label_name)
-        plt.savefig('histogram_' + feature + '.png')
+            if PLOT_GRAPHS:
+                # Plot the histogram
+                if resolved:
+                    label_name = 'resolved'
+                else:
+                    label_name = 'not resolved'
+                plt.hist(range(len(histogram)), len(histogram), weights=histogram, alpha=0.5, label=label_name)
+
+        if PLOT_GRAPHS:
+            plt.savefig('histogram_' + feature + '.png')
 
         # For testing
         break
