@@ -51,7 +51,6 @@ def create_scatter_data(spark):
     for c in feature_list:
         bucket_column = "buckets_" + c
         feature = feature_data_buckets.select([c, bucket_column]).groupBy(bucket_column).agg(mean(c).alias(c)).withColumnRenamed(bucket_column, "bucket_id")
-        feature.show()
         if data_points == None:
             data_points = feature
         else:
