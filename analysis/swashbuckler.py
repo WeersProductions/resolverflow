@@ -1,7 +1,5 @@
 from pyspark.sql import SparkSession
-
-# bucketby
-
+from pyspark.sql.functions import col, max
 
 PLOT_GRAPHS = False
 DEBUG = False
@@ -9,11 +7,9 @@ DEBUG = False
 if PLOT_GRAPHS:
     import matplotlib.pyplot as plt
 
-
 INTEGER_FEATURES = ["title_number_of_characters", "number_of_characters", "number_of_interpunction_characters",
                     "number_of_lines", "number_of_words", "number_of_tags", "posts_amount", "answered_posts_amount"]
-FLOAT_FEATURES = ["interpunction_ratio", "average_line_length", "average_word_length", "creation_seconds",
-                  "user_age"]
+FLOAT_FEATURES = ["interpunction_ratio", "average_line_length", "average_word_length", "user_age", "creation_seconds"]
 BOOLEAN_FEATURES = []
 
 
@@ -38,29 +34,32 @@ def bucketize(dataframe, bucket_size=100):
     return dataframe.bucketBy(bucket_size, dataframe.columns[0])
 
 
-def create_plots(spark):
+def create_plots(spark_session):
     """
     Create a histogram for each feature
 
     Args:
-        dataframe: single-column dataframe to be processed
-        *functions: all functions that are to be applied
+        spark_session: dataframe to be processed
 
     Returns:
-        dataframe with one extra column for every function that was given as input with its results
+        dataframe
     """
 
-    all_features = spark.read.parquet("/user/***REMOVED***/StackOverflow/output_stackoverflow.parquet")
+    all_features = spark_session.read.parquet("/user/***REMOVED***/StackOverflow/output_stackoverflow.parquet")
     all_features = all_features.filter(all_features["is_question"])
 
     for feature in INTEGER_FEATURES + FLOAT_FEATURES:
+        original_feature = feature
+        if feature in FLOAT_FEATURES:
+            # Bucketize each float feature into "${feature}_bucket_index" columns
+            feature += '_bucket_index'
+            all_features.withColumn(feature, int(col(original_feature) / max(col(original_feature))))
+
         for resolved in [True, False]:
-            feature_data = None
-            if resolved:
-                feature_data = all_features.filter(all_features["has_answer"] is resolved) \
-                    .select(feature) \
-                    .groupBy(feature).count() \
-                    .orderBy(feature)
+            feature_data = all_features.filter(all_features["has_answer"] is resolved) \
+                .select(feature) \
+                .groupBy(feature).count() \
+                .orderBy(feature)
 
             # Retrieve the counts, which is small data
             values = [row[0] for row in feature_data.select('feature')]
@@ -79,10 +78,7 @@ def create_plots(spark):
                 plt.hist(range(len(histogram)), len(histogram), weights=histogram, alpha=0.5, label=label_name)
 
         if PLOT_GRAPHS:
-            plt.savefig('histogram_' + feature + '.png')
-
-        # For testing
-        break
+            plt.savefig('histogram_' + original_feature + '.png')
 
 
 if __name__ == "__main__":
