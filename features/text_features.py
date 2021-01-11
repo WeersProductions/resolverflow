@@ -25,7 +25,6 @@ def text_features_df(spark):
     post_history_df = spark.read.parquet("/user/***REMOVED***/StackOverflow/PostHistory.parquet") \
         .select(['_PostId', '_Text', '_PostHistoryTypeId']) \
         .filter(col('_PostHistoryTypeId') == 2) \
-        .withColumnRenamed('_PostId', '_Id') \
         .drop('_PostHistoryTypeId')
 
     post_df = spark.read.parquet('/user/***REMOVED***/StackOverflow/Posts.parquet') \
@@ -33,7 +32,7 @@ def text_features_df(spark):
         .withColumn('is_question', when(col("_PostTypeId") == 1, True).otherwise(False)) \
         .drop("_PostTypeId")
 
-    df = post_history_df.join(post_df, '_Id') \
+    df = post_history_df.join(post_df, post_df['_Id'] == post_history_df['_PostId']) \
         .withColumn('number_of_characters', length(col('_Text'))) \
         .withColumn('number_of_interpunction_characters', size(split(col('_Text'), r'[-\[\]{}()*+?.,\\^$|#]')) - 1) \
         .withColumn('number_of_emoji_characters', size(split(col('_Text'), r'[\uD83C -\uDBFF\uDC00 -\uDFFF]')) - 1) \
