@@ -141,15 +141,15 @@ def tag_info_df(spark):
                      "flex-machine", "hydra", "keykos"]  # generated from util/platform_list.rb
     platform_list_col = array(*[lit(x) for x in platform_list])
 
-    # TODO: this should use posthistory with posthistorytypeid==3, these are the initial tags.
-    df = spark.read.parquet("/user/***REMOVED***/StackOverflow/Posts.parquet") \
-        .select(["_Id", "_Tags"]) \
+    df = spark.read.parquet("/user/***REMOVED***/StackOverflow/Posthistory.parquet") \
+        .select(["_Id", "_Tags", '_PostHistoryTypeId']) \
+        .filter(col("_PostHistoryTypeId") == 3) \
         .withColumn("_Tags", expr("substring(_Tags, 2, length(_Tags) - 2)")) \
         .withColumn("_Tags", split(col("_Tags"), "><")) \
         .withColumn("number_of_tags", when(size("_Tags") < 0, 0).otherwise(size("_Tags"))) \
         .withColumn("contains_language_tag", size(array_intersect("_Tags", language_list_col)) > 0) \
         .withColumn("contains_platform_tag", size(array_intersect("_Tags", platform_list_col)) > 0) \
-        .drop("_Tags")
+        .drop("_Tags", "_PostHistoryTypeId")
 
     return df
 
