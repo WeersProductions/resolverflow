@@ -1,7 +1,7 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, length, size, split
+from pyspark.sql.functions import col, length, size, split, when
 
-# TODO: this should use postHistoryType==2 as well, but only the posts that are questions. This is the intitial (markdown) body.
+
 def text_features_df(spark):
     """ Extract features from the text of a post
 
@@ -22,9 +22,18 @@ def text_features_df(spark):
             average_line_length
         ]
     """
-    df = spark.read.parquet("/user/***REMOVED***/StackOverflow/PostHistory.parquet") \
-        .select(['_Id', '_Text', '_PostHistoryTypeId']) \
-        .filter(col('_PostHistoryTypeId') == 1) \
+    post_history_df = spark.read.parquet("/user/***REMOVED***/StackOverflow/PostHistory.parquet") \
+        .select(['_PostId', '_Text', '_PostHistoryTypeId']) \
+        .filter(col('_PostHistoryTypeId') == 2) \
+        .withColumnRenamed('_PostId', '_Id') \
+        .drop('_PostHistoryTypeId')
+
+    post_df = spark.read.parquet('/user/***REMOVED***/StackOverflow/Posts.parquet') \
+        .select(['_Id', '_PostTypeId']) \
+        .withColumn('is_question', when(col("_PostTypeId") == 1, True).otherwise(False)) \
+        .drop("_PostTypeId")
+
+    df = post_history_df.join(post_df, '_Id') \
         .withColumn('number_of_characters', length(col('_Text'))) \
         .withColumn('number_of_interpunction_characters', size(split(col('_Text'), r'[-\[\]{}()*+?.,\\^$|#]')) - 1) \
         .withColumn('number_of_emoji_characters', size(split(col('_Text'), r'[\uD83C -\uDBFF\uDC00 -\uDFFF]')) - 1) \
@@ -35,7 +44,6 @@ def text_features_df(spark):
         .withColumn('number_of_words', size(split(col('_Text'), r'\s'))) \
         .withColumn('average_word_length', col('number_of_characters') / col('number_of_words')) \
         .drop('_Text', '_PostHistoryTypeId')
-    # TODO drop any more useless columns
     return df
 
 
