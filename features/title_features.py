@@ -2,7 +2,6 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, length
 
 
-# TODO: this should use posthistory with posthistorytypeid=1. That is the original title.
 def title_features_df(spark):
     """ Extract features from the title
 
@@ -15,12 +14,13 @@ def title_features_df(spark):
             title_number_of_characters
         ]
     """
-    df = spark.read.parquet("/user/***REMOVED***/StackOverflow/Posts.parquet") \
-        .select(["_Id", "_Title"]) \
+    df = spark.read.parquet("/user/***REMOVED***/StackOverflow/PostHistory.parquet") \
+        .select(["_Id", "_Text", "_PostHistoryTypeId"]) \
+        .filter(col('_PostHistoryTypeId') == 1) \
         .dropna() \
-        .withColumn('title_contains_questionmark', col("_Title").contains('?')) \
-        .withColumn('title_number_of_characters', length(col("_Title"))) \
-        .drop("_Title")
+        .withColumn('title_contains_questionmark', col("_Text").contains('?')) \
+        .withColumn('title_number_of_characters', length(col("_Text"))) \
+        .drop("_Text", "_PostHistoryTypeId")
 
     return df
 
