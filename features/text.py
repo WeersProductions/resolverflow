@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, length
+from pyspark.sql.functions import col, length, udf
 import marko
 from collections import Counter
 
@@ -17,20 +17,20 @@ def text_preprocess():
 # Features
 
 
-def text_length_and_formatting():
+def text_length_and_formatting(spark):
+    count_formatting_udf = udf(lambda text: count_formatting(text))
     df = spark.read.parquet("/user/***REMOVED***/StackOverflow/PostHistory.parquet") \
         .select(['_Id', '_Text', '_PostHistoryTypeId']) \
-        .filter(col('_PostHistoryTypeId') == 1) \
+        .filter(col('_PostHistoryTypeId') == 6) \
         .withColumn('text_length', length(col('_Text'))) \
-        .withColumn('has_rules', col('_Text').contains('---')) \
-        .withColumn('formatting', count_formatting(col('_Text')))
+        .withColumn('formatting', count_formatting_udf(col('_Text')))
+        # .withColumn('has_rules', col('_Text').contains('---')) \
     # TODO: for has rules, check it's succeeded by whitespace, and whether it's not part of code or quotes
     return df
 
-
 def count_formatting(text):
     ''' Parses the text as Markdown and returns count of each formatting type '''
-    
+
     def get_children_types(elem):
         ''' For a markdown parse tree node, get the types of its children '''
         if hasattr(elem, 'children'):
@@ -39,18 +39,27 @@ def count_formatting(text):
             children = []
         
         if type(children) == list:      # Children
-            result = Counter([type(child) for child in children])
+            result = Counter([get_format_type(child) for child in children])
             for child in children:
                 result += get_children_types(child)
         elif type(children) != str:     # Single child
-            result = Counter([type(children)])
+            result = Counter([get_format_type(children)])
         else:                           # No children
             result = Counter()
         return result
 
-    md_tree = marko.parse(text)
+    def get_format_type(elem):
+        ''' For a markdown parse tree node get its formatting type '''
+        return elem.__class__.__name__
+
+    if text is not None:
+        string_text = text.encode("utf8")
+    else:
+        string_text = ""
+        
+    md_tree = marko.parse(string_text)
     md_types = get_children_types(md_tree)
-    return md_types
+    return dict(md_types).__str__()
 
 
 def has_bold():
