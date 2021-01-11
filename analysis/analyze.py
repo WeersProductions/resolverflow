@@ -167,6 +167,20 @@ def calc_correlation(spark):
     print(str(corr_mat[0]))
 
 
+def ExtractFeatureImp(featureImp, dataset, featuresCol):
+    """
+    From an index based importance list, to a feature label based importance list.
+    """
+    list_extract = []
+    for i in dataset.schema[featuresCol].metadata["ml_attr"]["attrs"]:
+        list_extract = list_extract + dataset.schema[featuresCol].metadata["ml_attr"]["attrs"][i]
+    result = []
+    for index, feature in enumerate(list_extract):
+      result.append((feature, featureImp[index]))
+    result.sort(key=lambda x: x[1])
+    return result
+
+
 def try_decision_tree(spark):
     """
     +--------------+-----+--------------------+
@@ -185,10 +199,10 @@ def try_decision_tree(spark):
     """
     print("-- Calculating Random Forest --")
     # Create two columns, 'label' and 'features'. Label is true or false, features is a vector of values.
-    original_label_col = "HasAnswer"
+    original_label_col = "has_answer"
     label_col = "label"
     vector_col = "features"
-    feature_col_names = ["contains_questionmark", "title_length", "creation_seconds", "number_of_tags", "contains_language_tag", "contains_platform_tag", "age", "posts_amount"]
+    feature_col_names = ["title_contains_questionmark", "title_number_of_characters", "creation_seconds", "number_of_tags", "contains_language_tag", "contains_platform_tag", "user_age", "posts_amount", "answered_posts_amount"]
 
     feature_data = load_feature_data(spark)
     feature_data = feature_data.withColumnRenamed(original_label_col, label_col)
@@ -214,7 +228,23 @@ def try_decision_tree(spark):
     accuracy = evaluator.evaluate(predictions)
     print("Test Error = %g " % (1.0 - accuracy))
     treeModel = model.stages[2]
-    print(treeModel)
+    print("model_summary", treeModel)
+    get_feature_importance(treeModel, predictions, vector_col)
+
+
+def get_feature_importance(model, prediction_df, feature_col):
+    """
+    Calculate the importance score of each feature.
+
+    Args:
+        model: trained model
+        prediction_df: transformed dataframe based on the model
+        feature_col: name of the column that contains vectors for each feature
+    """
+    feature_importances = model.featureImportances
+    print("feature_importance", feature_importances)
+    feature_importance_info = ExtractFeatureImp(feature_importances, prediction_df, feature_col)
+    print("feature_importance_info", feature_importance_info)
 
 
 if __name__ == "__main__":
@@ -224,5 +254,7 @@ if __name__ == "__main__":
 
     print("Starting analysis.")
     spark = SparkSession.builder.getOrCreate()
-    calc_correlation(spark)
+    # calc_correlation(spark)
+
+    # Train a model and print feature importance.
     try_decision_tree(spark)
