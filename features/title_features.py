@@ -2,6 +2,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, length
 
 
+# TODO: this should use posthistory with posthistorytypeid=1. That is the original title.
 def title_features_df(spark):
     """ Extract features from the title
 

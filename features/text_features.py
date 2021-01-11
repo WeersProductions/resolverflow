@@ -1,7 +1,7 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, length, size, split
 
-
+# TODO: this should use postHistoryType==2 as well, but only the posts that are questions. This is the intitial (markdown) body.
 def text_features_df(spark):
     """ Extract features from the text of a post
 
