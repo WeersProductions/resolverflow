@@ -1,14 +1,16 @@
 import sys
+from user_features import user_age_df, user_question_amount
 from pyspark.sql import SparkSession
 from title_features import title_features_df
-from text import text_length_and_formatting
+from text_features import text_features_df
 from post_time import post_time
 from tag_info import tag_info_df
+from post_answered import post_answered_df
+from post_is_question import post_is_question_df
 
 # Define what features should be extracted and combined here.
 # If you add a new feature, be sure to import it correctly and pass it to the spark-submit command.
-# all_features = [title_features_df, post_time, tag_info_df, text_length_and_formatting]
-all_features = [text_length_and_formatting]
+all_features = [title_features_df, post_answered_df, text_features_df, post_time, tag_info_df, user_age_df, user_question_amount, post_is_question_df]
 
 
 def get_feature_name(feature):
@@ -30,7 +32,7 @@ def run_all(spark):
 
 if __name__ == "__main__":
     """
-    Run this using: spark-submit --master yarn --deploy-mode cluster --conf spark.dynamicAllocation.maxExecutors=10 --name dreamteam --py-files title_features.py,post_time.py,tag_info.py,text.py run_all.py --file "output_stackoverflow.parquet" 2> /dev/null
+    Run this using: spark-submit --master yarn --deploy-mode cluster --conf spark.dynamicAllocation.maxExecutors=10 --name dreamteam --py-files title_features.py,text_features.py,post_time.py,tag_info.py,user_features.py,post_answered.py,post_is_question.py run_all.py --file "StackOverflow/output_stackoverflow.parquet" 2> /dev/null
 
     --py-files, a list of python files that are imported from this file.
 
@@ -44,6 +46,6 @@ if __name__ == "__main__":
     if complete_df is None:
         print("No features extracted.")
     elif len(sys.argv) > 2 and sys.argv[1]=='--file':
-        complete_df.write.parquet(sys.argv[2])
+        complete_df.write.mode("overwrite").parquet(sys.argv[2])
     else:
         complete_df.show()

@@ -9,7 +9,12 @@ def tag_info_df(spark):
         spark (SparkSession): used to run queries and commands
 
     Returns:
-        DataFrame: With columns [(post)_Id, number_of_tags, contains_language_tag, contains_platform_tag]
+        DataFrame: With columns [
+            (post)_Id,
+            number_of_tags,
+            contains_language_tag,
+            contains_platform_tag
+        ]
     """
     language_list = ["abap", "abc", "actionscript", "ada", "algol", "algol 58", "algol 60", "algol w", "algol 68",
                      "alice", "amiga e", "apex", "apl", "applescript", "argh!", "aargh!", "assembly",
@@ -136,6 +141,7 @@ def tag_info_df(spark):
                      "flex-machine", "hydra", "keykos"]  # generated from util/platform_list.rb
     platform_list_col = array(*[lit(x) for x in platform_list])
 
+    # TODO: this should use posthistory with posthistorytypeid==3, these are the initial tags.
     df = spark.read.parquet("/user/***REMOVED***/StackOverflow/Posts.parquet") \
         .select(["_Id", "_Tags"]) \
         .withColumn("_Tags", expr("substring(_Tags, 2, length(_Tags) - 2)")) \

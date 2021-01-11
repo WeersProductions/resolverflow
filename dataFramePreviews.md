@@ -1,5 +1,5 @@
 # Data previews
-Easiest to read on GitHub: https://github.com/WeersProductions/MBDProject/blob/master/dataFramePreviews.md
+Easiest to read on GitHub: https://github.com/WeersProductions/resolverflow/blob/master/dataFramePreviews.md
 Data previews for the following tables:
 1. Badges
 2. Comments
@@ -9,6 +9,7 @@ Data previews for the following tables:
 6. Tags
 7. Users
 8. Votes
+9. output_stackoverflow
 
 You can find the database schema here: https://meta.stackexchange.com/questions/2677/database-schema-documentation-for-the-public-data-dump-and-sede 
 
@@ -239,4 +240,33 @@ You can find the database schema here: https://meta.stackexchange.com/questions/
 |         null|2020-05-04T00:00:...|208377508|45945829|   null|          2|
 |         null|2020-05-04T00:00:...|208377509|61588542|   null|          2|
 +-------------+--------------------+---------+--------+-------+-----------+
+```
+
+
+```
+>>> spark.read.parquet("/user/***REMOVED***/StackOverflow/output_stackoverflow.parquet").show()
++------+---------------------+------------+---------+--------------------+------------------+--------------------+----------------------------------+--------------------+---------------+-------------------+---------------+-------------------+----------------+--------------+---------------------+---------------------+-------+------------+----------+
+|   _Id|contains_questionmark|title_length|HasAnswer|               _Text|_PostHistoryTypeId|number_of_characters|number_of_interpunction_characters| interpunction_ratio|number_of_lines|average_line_length|number_of_words|average_word_length|creation_seconds|number_of_tags|contains_language_tag|contains_platform_tag|    age|posts_amount|IsQuestion|
++------+---------------------+------------+---------+--------------------+------------------+--------------------+----------------------------------+--------------------+---------------+-------------------+---------------+-------------------+----------------+--------------+---------------------+---------------------+-------+------------+----------+
+| 34155|                false|          52|     true|When do you use t...|                 1|                  35|                                 1| 0.02857142857142857|              1|               35.0|              7|                5.0|      1219990078|             5|                 true|                false| 346749|          71|      true|
+| 63916|                false|          33|    false|How do you deal w...|                 1|                  48|                                 1|0.020833333333333332|              1|               48.0|              9|  5.333333333333333|      1221485128|             2|                false|                false|     60|          89|      true|
+| 75487|                 true|          61|     true|How to detect the...|                 1|                  71|                                 1|0.014084507042253521|              1|               71.0|             13|  5.461538461538462|      1221582682|             1|                false|                false| 458463|          84|      true|
+| 76412|                false|          25|     true|Why does windows ...|                 1|                  78|                                 1| 0.01282051282051282|              1|               78.0|             15|                5.2|      1221588702|             3|                false|                false|3731294|          95|      true|
+| 99643|                false|          45|    false|Get the current m...|                 1|                  33|                                 0|                 0.0|              1|               33.0|              5|                6.6|      1221791309|             2|                false|                false|3058242|          57|      true|
+|124096|                 true|         118|    false|C++ unit testing ...|                 1|                  26|                                 2| 0.07692307692307693|              1|               26.0|              4|                6.5|      1222199155|             3|                 true|                false|2279416|          74|      true|
+|129072|                 true|          60|     true|XMP library for ruby|                 1|                  20|                                 0|                 0.0|              1|               20.0|              4|                5.0|      1222275072|             4|                 true|                false|3652534|         352|      true|
+|156136|                false|          19|    false|Tools to view/sol...|                 1|                  51|                                 0|                 0.0|              1|               51.0|              7|  7.285714285714286|      1222824610|             4|                false|                false|1322067|          10|      true|
+|178899|                false|          35|     true|How to define / c...|                 1|                  85|                                 2|0.023529411764705882|              1|               85.0|             14|  6.071428571428571|      1223384819|             3|                 true|                false|3121810|          40|      true|
+|196217|                false|          23|    false|Structured UAT ap...|                 1|                  25|                                 0|                 0.0|              1|               25.0|              3|  8.333333333333334|      1223843278|             3|                 true|                false|5568528|           1|      true|
+|205697|                false|          56|     true|Actionscript 2 fu...|                 1|                  24|                                 0|                 0.0|              1|               24.0|              3|                8.0|      1224085491|             3|                 true|                false|2413771|         238|      true|
+|209415|                 true|          53|     true|Building a direct...|                 1|                  54|                                 1|0.018518518518518517|              1|               54.0|              9|                6.0|      1224168986|             2|                 true|                false|6568071|         144|      true|
+|229217|                 true|          52|     true|Reports in a .NET...|                 1|                  30|                                 1| 0.03333333333333333|              1|               30.0|              6|                5.0|      1224749689|             1|                false|                false|2936925|          25|      true|
+|249499|                 true|          50|    false|How do I base64 e...|                 1|                  48|                                 1|0.020833333333333332|              1|               48.0|             10|                4.8|      1225348479|             3|                 true|                false| 626422|           3|      true|
+|265494|                false|          44|    false|Trace vs Debug in...|                 1|                  26|                                 1|0.038461538461538464|              1|               26.0|              6|  4.333333333333333|      1225895460|             1|                false|                false| 596534|         787|      true|
+|286004|                false|          30|    false|  Configuring python|                 1|                  18|                                 0|                 0.0|              1|               18.0|              2|                9.0|      1226535319|             3|                false|                false|5877177|         113|      true|
+|296116|                 true|          56|     true|Docstrings for data?|                 1|                  20|                                 1|                0.05|              1|               20.0|              3|  6.666666666666667|      1226936534|             5|                 true|                false|6374092|        1214|      true|
+|336218|                 true|          77|     true|Why is Crystal Re...|                 1|                  34|                                 1|0.029411764705882353|              1|               34.0|              6|  5.666666666666667|      1228275150|             1|                false|                false| 475594|         333|      true|
+|358764|                false|          33|     true|How can I add SQL...|                 1|                  49|                                 1| 0.02040816326530612|              1|               49.0|             10|                4.9|      1228983657|             2|                false|                false|9757678|          55|      true|
+|407210|                false|          50|     true|Mocking WebServic...|                 1|                  62|                                 1|0.016129032258064516|              1|               62.0|              8|               7.75|      1230908083|             2|                false|                false|8150242|          28|      true|
++------+---------------------+------------+---------+--------------------+------------------+--------------------+----------------------------------+--------------------+---------------+-------------------+---------------+-------------------+----------------+--------------+---------------------+---------------------+-------+------------+----------+
 ```
