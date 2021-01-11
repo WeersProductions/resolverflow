@@ -47,6 +47,7 @@ if __name__ == "__main__":
 
             fig, ax = plt.subplots()
             ax.scatter(column_data, column_data2)
+            ax.plot(column_data, column_data, ':b')
             ax.set_xlabel(column_names[column_index])
             ax.set_ylabel(column_names[column_index2])
             title = column_names[column_index] + " x " + column_names[column_index2]
@@ -54,4 +55,6 @@ if __name__ == "__main__":
             os.makedirs(output_dir, exist_ok=True)
             fig.savefig(output_dir + output_prefix + title.replace(" ", "_"))
             plt.close(fig)
+
+    print("Done!")
 
