@@ -209,57 +209,6 @@ def print_evaluate(evaluator, predictions, vector_col, model):
     print_feature_importance(treeModel, predictions, vector_col)
 
 
-def try_decision_tree(spark):
-    """
-    +--------------+-----+--------------------+
-    |predictedLabel|label|            features|
-    +--------------+-----+--------------------+
-    |             0|    0|(8,[0,1,2,3],[1.0...|
-    |             0|    0|(8,[0,1,2,3],[1.0...|
-    |             0|    0|(8,[0,1,2,3],[1.0...|
-    |             0|    0|(8,[0,1,2,3],[1.0...|
-    |             0|    0|(8,[0,1,2,3],[1.0...|
-    +--------------+-----+--------------------+
-    only showing top 5 rows
-
-    Test Error = 0.371438
-    DecisionTreeClassificationModel (uid=DecisionTreeClassifier_fc4359bba0c0) of depth 5 with 19 nodes
-    """
-    print("-- Calculating Random Forest --")
-    # Create two columns, 'label' and 'features'. Label is true or false, features is a vector of values.
-    original_label_col = "has_answer"
-    label_col = "label"
-    vector_col = "features"
-    feature_col_names = ["title_contains_questionmark", "title_number_of_characters", "creation_seconds", "number_of_tags", "contains_language_tag", "contains_platform_tag", "user_age", "posts_amount", "answered_posts_amount"]
-
-    feature_data = load_feature_data(spark)
-    feature_data = feature_data.withColumnRenamed(original_label_col, label_col)
-    feature_data = feature_data.withColumn(label_col, col(label_col).cast("integer"))
-    assembler = VectorAssembler(inputCols=feature_col_names, outputCol=vector_col)
-    data = assembler.transform(feature_data).select(label_col, vector_col)
-    labelIndexer = StringIndexer(inputCol=label_col, outputCol="indexedLabel").fit(data)
-    featureIndexer = VectorIndexer(inputCol=vector_col, outputCol="indexedFeatures", maxCategories=4).fit(data)
-
-    (trainingData, testData) = data.randomSplit([0.8, 0.2])
-
-    # dt = DecisionTreeClassifier(labelCol="indexedLabel", featuresCol="indexedFeatures")
-    # dt = RandomForestClassifier(labelCol="indexedLabel", featuresCol="indexedFeatures", numTrees=10)
-    dt = GBTClassifier(labelCol="indexedLabel", featuresCol="indexedFeatures", maxIter=10)
-    # Convert indexed labels back to original labels.
-    labelConverter = IndexToString(inputCol="prediction", outputCol="predictedLabel",labels=labelIndexer.labels)
-    pipeline = Pipeline(stages=[labelIndexer, featureIndexer, dt, labelConverter])
-    model = pipeline.fit(trainingData)
-    predictions = model.transform(testData)
-    predictions.select("predictedLabel", "label", "features").show(5)
-
-    evaluator = MulticlassClassificationEvaluator(labelCol="indexedLabel", predictionCol="prediction", metricName="accuracy")
-    accuracy = evaluator.evaluate(predictions)
-    print("Test Error = %g " % (1.0 - accuracy))
-    treeModel = model.stages[2]
-    print("model_summary", treeModel)
-    print_feature_importance(treeModel, predictions, vector_col)
-
-
 def decision_tree_regressor(spark):
     print("-- Calculating Decision Tree regressor --")
     # Create two columns, 'label' and 'features'. Label is true or false, features is a vector of values.
@@ -307,4 +256,4 @@ if __name__ == "__main__":
     # calc_correlation(spark)
 
     # Train a model and print feature importance.
-    try_decision_tree(spark)
+    decision_tree_regressor(spark)
