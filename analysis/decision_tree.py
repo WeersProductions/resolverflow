@@ -14,18 +14,18 @@ class EvaluationResult:
     """
     Contains information about an evaluator that has ran and model.
     """
-    def __init__(self, test_result, model_summary, full_model):
+    def __init__(self, test_result, model, model_debug_string):
         self.test_result = test_result # (test_name, test_value)
-        self.model_summary = model_summary
-        self.full_model = full_model
+        self.model = model
+        self.model_debug_string = model_debug_string
 
     def __str__(self):
-     return "test_result: %s = %g \n model_summary: %s \n full_model: %s" % (self.test_result[0], self.test_result[1], self.model_summary, self.full_model)
+     return "test_result: %s = %g \n model_summary: %s \n full_model: %s" % (self.test_result[0], self.test_result[1], self.model, self.model_debug_string)
 
 
 class ModelResult:
     """
-    Contains all information about a model. 
+    Contains all information about a model.
     Data can be added (like feature_importance) and will be printed properly when converting to string.
     """
     def __init__(self, model_name):
@@ -189,6 +189,7 @@ if __name__ == "__main__":
     label = "has_answer"
 
     regressor_result = decision_tree_regressor(spark, label, features)
+    regressor_result.evaluation.model.save("StackOverflow/analysis/regressor_saved.parquet")
     print(regressor_result)
-    classifier_result = decision_tree_classifier(spark, label, features)
-    print(classifier_result)
+    # classifier_result = decision_tree_classifier(spark, label, features)
+    # print(classifier_result)
