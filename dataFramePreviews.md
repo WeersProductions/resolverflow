@@ -10,9 +10,11 @@ Data previews for the following tables:
 7. Users
 8. Votes
 9. output_stackoverflow
+10. correlation
 
 You can find the database schema here: https://meta.stackexchange.com/questions/2677/database-schema-documentation-for-the-public-data-dump-and-sede 
 
+## Badges
 ```
 >>> df = spark.read.parquet("/user/***REMOVED***/StackOverflow/Badges.parquet")
 >>> df.show()                                                                   
@@ -42,7 +44,7 @@ You can find the database schema here: https://meta.stackexchange.com/questions/
 +------+--------------------+-------+----------------+---------+-------+
 ```
 
-
+## Comments
 ```
 >>> spark.read.parquet("/user/***REMOVED***/StackOverflow/Comments.parquet").show()
 +---------------+--------------------+-------+-------+------+--------------------+----------------+-------+
@@ -72,7 +74,7 @@ You can find the database schema here: https://meta.stackexchange.com/questions/
 ```
 
 
-
+## PostHistory
 ```
 >>> spark.read.parquet("/user/***REMOVED***/StackOverflow/PostHistory.parquet").show()
 +--------------------+---------------+--------------------+---------+------------------+--------+--------------------+--------------------+----------------+-------+
@@ -101,6 +103,7 @@ You can find the database schema here: https://meta.stackexchange.com/questions/
 +--------------------+---------------+--------------------+---------+------------------+--------+--------------------+--------------------+----------------+-------+
 ```
 
+## PostLinks
 ```
 >>> spark.read.parquet("/user/***REMOVED***/StackOverflow/PostLinks.parquet").show()
 +--------------------+---+-----------+-------+--------------+
@@ -129,6 +132,7 @@ You can find the database schema here: https://meta.stackexchange.com/questions/
 +--------------------+---+-----------+-------+--------------+
 ```
 
+## Posts
 ```
 >>> spark.read.parquet("/user/***REMOVED***/StackOverflow/Posts.parquet").show()
 +-----------------+------------+--------------------+-----------+-------------+-------------------+---------------+--------------------+--------------+------+--------------------+--------------------+----------------------+-----------------+-----------------+------------+---------+-----------+------+--------------------+--------------------+----------+
@@ -157,6 +161,7 @@ You can find the database schema here: https://meta.stackexchange.com/questions/
 +-----------------+------------+--------------------+-----------+-------------+-------------------+---------------+--------------------+--------------+------+--------------------+--------------------+----------------------+-----------------+-----------------+------------+---------+-----------+------+--------------------+--------------------+----------+
 ```
 
+## Tags
 ```
 >>> spark.read.parquet("/user/***REMOVED***/StackOverflow/Tags.parquet").show()
 +-------+--------------+---+----------+-----------+
@@ -185,7 +190,7 @@ You can find the database schema here: https://meta.stackexchange.com/questions/
 +-------+--------------+---+----------+-----------+
 ```
 
-
+## Users
 ```
 >>> spark.read.parquet("/user/***REMOVED***/StackOverflow/Users.parquet").show()
 +--------------------+----------+--------------------+--------------------+----------+--------+--------------------+--------------------+--------------------+-----------+--------+------+--------------------+
@@ -214,6 +219,7 @@ You can find the database schema here: https://meta.stackexchange.com/questions/
 +--------------------+----------+--------------------+--------------------+----------+--------+--------------------+--------------------+--------------------+-----------+--------+------+--------------------+
 ```
 
+## Votes
 ```
 >>> spark.read.parquet("/user/***REMOVED***/StackOverflow/Votes.parquet").show()
 +-------------+--------------------+---------+--------+-------+-----------+     
@@ -243,6 +249,7 @@ You can find the database schema here: https://meta.stackexchange.com/questions/
 ```
 
 
+## output_stackoverflow
 ```
 >>> spark.read.parquet("/user/***REMOVED***/StackOverflow/output_stackoverflow.parquet").show()
 +------+---------------------+------------+---------+--------------------+------------------+--------------------+----------------------------------+--------------------+---------------+-------------------+---------------+-------------------+----------------+--------------+---------------------+---------------------+-------+------------+----------+
@@ -269,4 +276,30 @@ You can find the database schema here: https://meta.stackexchange.com/questions/
 |358764|                false|          33|     true|How can I add SQL...|                 1|                  49|                                 1| 0.02040816326530612|              1|               49.0|             10|                4.9|      1228983657|             2|                false|                false|9757678|          55|      true|
 |407210|                false|          50|     true|Mocking WebServic...|                 1|                  62|                                 1|0.016129032258064516|              1|               62.0|              8|               7.75|      1230908083|             2|                false|                false|8150242|          28|      true|
 +------+---------------------+------------+---------+--------------------+------------------+--------------------+----------------------------------+--------------------+---------------+-------------------+---------------+-------------------+----------------+--------------+---------------------+---------------------+-------+------------+----------+
+```
+
+## pair_correlation
+Calculated using `spearman`. This means that we cannot simply rely on the value shown here. We should also verify that the values are monotonic.
+```
+>>> spark.read.parquet("/user/***REMOVED***/StackOverflow/pair_correlation.parquet").show()
++--------------------+--------------------+----------+
+|         correlation|             feature|     label|
++--------------------+--------------------+----------+
+| 0.04164706093979694|title_contains_qu...|has_answer|
+|  -0.034707835357526|title_number_of_c...|has_answer|
+|-0.00491253326448154|number_of_characters|has_answer|
+|0.019044663496529227|number_of_interpu...|has_answer|
+|-0.00233838443165...| average_word_length|has_answer|
+|-0.19493722195095384|    creation_seconds|has_answer|
+|-0.00404959346628...|      number_of_tags|has_answer|
+|  0.0701465992728538|contains_language...|has_answer|
+|0.020167772743942793| interpunction_ratio|has_answer|
+|6.850081805398476E-4|     number_of_lines|has_answer|
+|-0.00491454014554...| average_line_length|has_answer|
+|-0.00317468875425...|     number_of_words|has_answer|
+|  0.2571830458177784|        posts_amount|has_answer|
+|    0.31784655302704|answered_posts_am...|has_answer|
+|-0.03127949576091...|contains_platform...|has_answer|
+|0.038255967261455755|            user_age|has_answer|
++--------------------+--------------------+----------+
 ```
