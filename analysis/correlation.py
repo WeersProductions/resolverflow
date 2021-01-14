@@ -27,7 +27,7 @@ def calc_correlation_label(spark, feature_columns, label_column):
 
 def calc_correlation(spark, feature_columns):
     """
-    Calculates the Pearson Correlation Coefficient
+    Calculates the Spearman Correlation Coefficient
     """
     feature_data = load_feature_data(spark)
     print("-- Calculating correlation --")
