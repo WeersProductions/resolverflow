@@ -3,6 +3,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.types import LongType
 
 
+# TODO: this should probably not just be the absolute creation time. I think this should be the relative time since the user created its account?
 def post_time(spark):
     """
     Add a column `creation_seconds` to a given dataframe that indicates the amount of seconds since UNIX zero time that

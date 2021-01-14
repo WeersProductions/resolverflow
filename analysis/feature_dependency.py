@@ -5,6 +5,12 @@ from pyspark.sql.functions import mean, col
 feature_list = ["title_number_of_characters", "number_of_characters", "number_of_interpunction_characters", "interpunction_ratio", "number_of_lines", "average_line_length", "number_of_words", "average_word_length", "creation_seconds", "number_of_tags", "user_age", "posts_amount", "answered_posts_amount"]
 
 
+def do_quantile_discretizer(input_data, result_data, column, prefix="buckets_", num_buckets=100):
+    discretizer = QuantileDiscretizer(inputCol=column, outputCol=prefix+column, numBuckets=num_buckets)
+    fittedBucketer = discretizer.fit(input_data)
+    return fittedBucketer.transform(result_data)
+
+
 def create_scatter_data(spark):
     """
     Example result:
@@ -36,14 +42,21 @@ def create_scatter_data(spark):
 
     feature_data = spark.read.parquet("/user/***REMOVED***/StackOverflow/output_stackoverflow.parquet")
     feature_data = feature_data.filter(feature_data["is_question"])
-    feature_data = feature_data.select(feature_list)
+    feature_data = feature_data.select(feature_list + ["has_answer"])
+    feature_data_resolved = feature_data.filter(col("has_answer"))
+    feature_data_unresolved = feature_data.filter(col("has_answer") == False)
 
     feature_data_buckets = feature_data
+    feature_data_buckets_resolved = feature_data_resolved
+    feauture_data_buckets_unresolved = feature_data_unresolved
     # Create buckets for the data, we want 100 points per feature.
-    for c in feature_data.columns:
-        discretizer = QuantileDiscretizer(inputCol=c, outputCol="buckets_"+c, numBuckets=100)
-        fittedBucketer = discretizer.fit(feature_data)
-        feature_data_buckets = fittedBucketer.transform(feature_data_buckets)
+    for c in feature_list:
+        # discretizer = QuantileDiscretizer(inputCol=c, outputCol="buckets_"+c, numBuckets=100)
+        # fittedBucketer = discretizer.fit(feature_data)
+        # feature_data_buckets = fittedBucketer.transform(feature_data_buckets)
+        feature_data_buckets = do_quantile_discretizer(feature_data, feature_data_buckets, c)
+        feature_data_buckets_resolved = do_quantile_discretizer(feature_data_resolved, feature_data_buckets_resolved, c)
+        feauture_data_buckets_unresolved = do_quantile_discretizer(feature_data_unresolved, feauture_data_buckets_unresolved, c)
 
     # Take the average per bucket, this is the value we'll use for the point.
     data_points = None
@@ -54,6 +67,19 @@ def create_scatter_data(spark):
             .groupBy(bucket_column) \
             .agg(mean(c).alias(c)) \
             .withColumnRenamed(bucket_column, "bucket_id")
+        feature_resolved = feature_data_buckets_resolved \
+            .select([c, bucket_column]) \
+            .groupBy(bucket_column) \
+            .agg(mean(c).alias(c+"resolved")) \
+            .withColumnRenamed(bucket_column, "bucket_id") \
+            .drop(c)
+        feature_unresolved = feauture_data_buckets_unresolved \
+            .select([c, bucket_column]) \
+            .groupBy(bucket_column) \
+            .agg(mean(c).alias(c+"_unresolved")) \
+            .withColumnRenamed(bucket_column, "bucket_id") \
+            .drop(c)
+        feature = feature.join(feature_resolved, "bucket_id").join(feature_unresolved, "bucket_id")
         if data_points == None:
             data_points = feature
         else:

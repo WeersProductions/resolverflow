@@ -6,8 +6,9 @@ from pyspark.ml.feature import VectorAssembler
 from pyspark.sql.functions import col
 from pyspark.ml import Pipeline
 from pyspark.ml.classification import DecisionTreeClassifier, RandomForestClassifier, GBTClassifier
+from pyspark.ml.regression import DecisionTreeRegressor
 from pyspark.ml.feature import StringIndexer, VectorIndexer, IndexToString
-from pyspark.ml.evaluation import MulticlassClassificationEvaluator
+from pyspark.ml.evaluation import MulticlassClassificationEvaluator, RegressionEvaluator
 
 
 def load_feature_data(spark):
@@ -20,6 +21,9 @@ def load_feature_data(spark):
 def calc_correlation(spark):
     """
     Calculates the Pearson Correlation Coefficient
+
+    TODO: this currently calculates a corr matrix between every feature.
+    Would be nice if we first calculate correlation between every feature and the label. We can drop some features after this.
 
     Example result:
     ['_Id', 'contains_questionmark', 'title_length', 'HasAnswer', '_PostHistoryTypeId', 'number_of_characters', 'number_of_interpunction_characters', 'interpunction_ratio', 'number_of_lines', 'average_line_length', 'number_of_words', 'average_word_length', 'creation_seconds', 'number_of_tags', 'contains_language_tag', 'contains_platform_tag', 'age', 'posts_amount', 'IsQuestion']
@@ -167,54 +171,82 @@ def calc_correlation(spark):
     print(str(corr_mat[0]))
 
 
-def try_decision_tree(spark):
+def ExtractFeatureImp(featureImp, dataset, featuresCol):
     """
-    +--------------+-----+--------------------+
-    |predictedLabel|label|            features|
-    +--------------+-----+--------------------+
-    |             0|    0|(8,[0,1,2,3],[1.0...|
-    |             0|    0|(8,[0,1,2,3],[1.0...|
-    |             0|    0|(8,[0,1,2,3],[1.0...|
-    |             0|    0|(8,[0,1,2,3],[1.0...|
-    |             0|    0|(8,[0,1,2,3],[1.0...|
-    +--------------+-----+--------------------+
-    only showing top 5 rows
-
-    Test Error = 0.371438
-    DecisionTreeClassificationModel (uid=DecisionTreeClassifier_fc4359bba0c0) of depth 5 with 19 nodes
+    From an index based importance list, to a feature label based importance list.
     """
-    print("-- Calculating Random Forest --")
-    # Create two columns, 'label' and 'features'. Label is true or false, features is a vector of values.
-    original_label_col = "HasAnswer"
-    label_col = "label"
-    vector_col = "features"
-    feature_col_names = ["contains_questionmark", "title_length", "creation_seconds", "number_of_tags", "contains_language_tag", "contains_platform_tag", "age", "posts_amount"]
+    list_extract = []
+    for i in dataset.schema[featuresCol].metadata["ml_attr"]["attrs"]:
+        list_extract = list_extract + dataset.schema[featuresCol].metadata["ml_attr"]["attrs"][i]
+    result = []
+    for index, feature in enumerate(list_extract):
+      result.append((feature, featureImp[index]))
+    result.sort(key=lambda x: x[1])
+    return result
 
+
+def get_and_prepare_data(spark, original_label_col, label_col, feature_col_names, vector_col):
     feature_data = load_feature_data(spark)
     feature_data = feature_data.withColumnRenamed(original_label_col, label_col)
     feature_data = feature_data.withColumn(label_col, col(label_col).cast("integer"))
     assembler = VectorAssembler(inputCols=feature_col_names, outputCol=vector_col)
     data = assembler.transform(feature_data).select(label_col, vector_col)
+
+    return data
+
+
+def get_pipeline(data, label_col, vector_col, model):
     labelIndexer = StringIndexer(inputCol=label_col, outputCol="indexedLabel").fit(data)
     featureIndexer = VectorIndexer(inputCol=vector_col, outputCol="indexedFeatures", maxCategories=4).fit(data)
-
-    (trainingData, testData) = data.randomSplit([0.8, 0.2])
-
-    # dt = DecisionTreeClassifier(labelCol="indexedLabel", featuresCol="indexedFeatures")
-    # dt = RandomForestClassifier(labelCol="indexedLabel", featuresCol="indexedFeatures", numTrees=10)
-    dt = GBTClassifier(labelCol="indexedLabel", featuresCol="indexedFeatures", maxIter=10)
     # Convert indexed labels back to original labels.
     labelConverter = IndexToString(inputCol="prediction", outputCol="predictedLabel",labels=labelIndexer.labels)
-    pipeline = Pipeline(stages=[labelIndexer, featureIndexer, dt, labelConverter])
-    model = pipeline.fit(trainingData)
-    predictions = model.transform(testData)
-    predictions.select("predictedLabel", "label", "features").show(5)
 
-    evaluator = MulticlassClassificationEvaluator(labelCol="indexedLabel", predictionCol="prediction", metricName="accuracy")
+    return [labelIndexer, featureIndexer, model, labelConverter]
+
+
+def print_evaluate(evaluator, predictions, vector_col, model):
     accuracy = evaluator.evaluate(predictions)
     print("Test Error = %g " % (1.0 - accuracy))
-    treeModel = model.stages[2]
-    print(treeModel)
+    treeModel = model.stages[2] # If more stages are added to the pipeline before the regressor/classifier, this changes.
+    print("model_summary", treeModel)
+    print_feature_importance(treeModel, predictions, vector_col)
+
+
+def decision_tree_regressor(spark):
+    print("-- Calculating Decision Tree regressor --")
+    # Create two columns, 'label' and 'features'. Label is true or false, features is a vector of values.
+    original_label_col = "has_answer"
+    label_col = "label"
+    vector_col = "features"
+    feature_col_names = ["title_contains_questionmark", "title_number_of_characters", "creation_seconds", "number_of_tags", "contains_language_tag", "contains_platform_tag", "user_age", "posts_amount", "answered_posts_amount"]
+
+    data = get_and_prepare_data(spark, original_label_col, label_col, feature_col_names, vector_col)
+    (trainingData, testData) = data.randomSplit([0.8, 0.2])
+
+    dt = DecisionTreeRegressor(labelCol="indexedLabel", featuresCol="indexedFeatures")
+    pipeline = Pipeline(stages=get_pipeline(data, label_col, vector_col, data))
+    model = pipeline.fit(trainingData)
+    predictions = model.transform(testData)
+    # For debugging purposes, show some of the predictions and their original labels.
+    predictions.select("predictedLabel", "label", "features").show(5)
+
+    evaluator = RegressionEvaluator(labelCol="indexedLabel", predictionCol="prediction", metricName="accuracy")
+    print_evaluate(evaluator, predictions, vector_col, model)
+
+
+def print_feature_importance(model, prediction_df, feature_col):
+    """
+    Calculate the importance score of each feature.
+
+    Args:
+        model: trained model
+        prediction_df: transformed dataframe based on the model
+        feature_col: name of the column that contains vectors for each feature
+    """
+    feature_importances = model.featureImportances
+    print("feature_importance", feature_importances)
+    feature_importance_info = ExtractFeatureImp(feature_importances, prediction_df, feature_col)
+    print("feature_importance_info", feature_importance_info)
 
 
 if __name__ == "__main__":
@@ -224,5 +256,7 @@ if __name__ == "__main__":
 
     print("Starting analysis.")
     spark = SparkSession.builder.getOrCreate()
-    calc_correlation(spark)
-    try_decision_tree(spark)
+    # calc_correlation(spark)
+
+    # Train a model and print feature importance.
+    decision_tree_regressor(spark)
