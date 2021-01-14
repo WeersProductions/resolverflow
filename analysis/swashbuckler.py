@@ -65,21 +65,6 @@ def create_parquet_files(spark_session):
             new_file.write.mode('overwrite')\
                 .parquet('/user/***REMOVED***/StackOverflow/swashbuckler/output_' + filename + '.parquet')
 
-        #     # Retrieve the counts, which is small data
-        #     values = [row[0] for row in feature_data.select('feature')]
-        #     counts = [row[0] for row in feature_data.select('count')]
-        #
-        #     # Add zero counts to empty values
-        #     histogram = [counts[values.index(i)] if i in values else 0 for i in range(max(values))]
-        #
-        #     if PLOT_GRAPHS:
-        #         # Plot the histogram
-        #         label_name = 'Resolved' if resolved else 'Not resolved'
-        #         plt.hist(range(len(histogram)), len(histogram), weights=histogram, alpha=0.5, label=label_name)
-        #
-        # if PLOT_GRAPHS:
-        #     plt.savefig('histogram_' + feature + '.png')
-
     return all_results
 
 
