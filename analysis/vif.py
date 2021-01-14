@@ -16,7 +16,7 @@ def calc_feature_pair_vifs(spark):
     feature_data = feature_data.drop("number_of_lines")
 
     # For testing
-    feature_data = feature_data.select("user_age", "post_amount", "title_number_of_characters")
+    feature_data = feature_data.select("user_age", "posts_amount", "title_number_of_characters")
 
     for i in range(len(feature_data.columns) - 1):
         for j in range(i + 1, len(feature_data.columns)):
