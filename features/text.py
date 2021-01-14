@@ -21,26 +21,28 @@ def text_preprocess():
 # - Marko. A markdown parser with high extensibility. Author: Frost Ming <mianghong@gmail.com>
 
 # Inline elements:
-# These are noted in order of precedence.
+# Builing blocks
 NOIMG = r'(?<!\!)'
 BRACKETED = r'\[([^\]]*)\]'
 LINK_START_RE = NOIMG + BRACKETED
 IMAGE_START_RE = r'\!' + BRACKETED
-LINK_END_RE = re.compile(r'''\(\s*(?:(<[^<>]*>)\s*(?:('[^']*'|"[^"]*")\s*)?\))?''', re.DOTALL | re.UNICODE)
-REFERENCE_END_RE = re.compile(r'\s?' + BRACKETED, re.DOTALL | re.UNICODE)
+# Matches (<link> "title") or (continuoustext)
+LINK_END_RE = r'''\(\s*(?:(<[^<>]*>)\s*(?:('[^']*'|"[^"]*")\s*)?\)|[^\s\)]*\))'''
+REFERENCE_END_RE = BRACKETED
 
+# Elements, noted in order of precedence.
 # `e=f()` or ``e=f("`")``
 CODESPAN_RE = r'(?:(?<!\\)((?:\\{2})+)(?=`+)|(?<!\\)(`+)(.+?)(?<!`)\2(?!`))'
 # \<
 ESCAPE_RE = r'\\(.)'
 # [Google][3]
-REFERENCE_RE = LINK_START_RE + REFERENCE_END_RE
+REFERENCE_RE = re.compile(LINK_START_RE + REFERENCE_END_RE, re.DOTALL | re.UNICODE)
 # [text](url) or [text](<url>) or [text](url "title")
-LINK_RE = LINK_START_RE + LINK_END_RE
+LINK_RE = re.compile(LINK_START_RE + LINK_END_RE, re.DOTALL | re.UNICODE)
 # ![alttxt](http://x.com/) or ![alttxt](<http://x.com/>)
-IMAGE_LINK_RE = IMAGE_START_RE + LINK_END_RE # image link
+IMAGE_LINK_RE = re.compile(IMAGE_START_RE + LINK_END_RE, re.DOTALL | re.UNICODE) # image link
 # ![alt text][2]
-IMAGE_REFERENCE_RE = IMAGE_START_RE + REFERENCE_END_RE  # image ref
+IMAGE_REFERENCE_RE = re.compile(IMAGE_START_RE + REFERENCE_END_RE, re.DOTALL | re.UNICODE)  # image ref
 # [Google]
 REFERENCE_RE = LINK_START_RE # short ref
 # ![ref]
@@ -116,6 +118,7 @@ def text_formatting(spark):
         .withColumn('processed_text', array_join(col('processed_text'), FILLER)) \
         .withColumn('processed_text', regexp_replace(col('processed_text'), ESCAPE_RE, FILLER))
     return df
+        # .drop(col('processed_text'))
         # .withColumn('text_length', length(col('_Text'))) \
         # .withColumn('formatting', count_formatting_udf(col('_Text')))
 
