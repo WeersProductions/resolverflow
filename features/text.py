@@ -39,14 +39,16 @@ ESCAPE_RE = r'\\(.)'
 REFERENCE_RE = re.compile(LINK_START_RE + REFERENCE_END_RE, re.DOTALL | re.UNICODE)
 # [text](url) or [text](<url>) or [text](url "title")
 LINK_RE = re.compile(LINK_START_RE + LINK_END_RE, re.DOTALL | re.UNICODE)
+# --- Images
 # ![alttxt](http://x.com/) or ![alttxt](<http://x.com/>)
-IMAGE_LINK_RE = re.compile(IMAGE_START_RE + LINK_END_RE, re.DOTALL | re.UNICODE) # image link
+IMAGE_LINK_RE = IMAGE_START_RE + LINK_END_RE # image link
 # ![alt text][2]
-IMAGE_REFERENCE_RE = re.compile(IMAGE_START_RE + REFERENCE_END_RE, re.DOTALL | re.UNICODE)  # image ref
-# [Google]
-REFERENCE_RE = LINK_START_RE # short ref
+IMAGE_REFERENCE_RE = IMAGE_START_RE + REFERENCE_END_RE  # image ref
 # ![ref]
-IMAGE_REFERENCE_RE = IMAGE_START_RE # short image ref
+SHORT_IMAGE_REFERENCE_RE = IMAGE_START_RE # short image ref
+INLINE_IMAGE_RE = '(' + IMAGE_LINK_RE + ')|(' + IMAGE_REFERENCE_RE + ')|(' + SHORT_IMAGE_REFERENCE_RE + ')'
+# [Google]
+SHORT_REFERENCE_RE = LINK_START_RE # short ref
 # <http://www.123.com>
 AUTOLINK_RE = r'<((?:[Ff]|[Hh][Tt])[Tt][Pp][Ss]?://[^<>]*)>'
 # <me@example.com>
@@ -58,7 +60,7 @@ HTML_RE = r'(<([a-zA-Z/][^<>]*|!--(?:(?!<!--|-->).)*--)>)' #TODO this now finds 
 ENTITY_RE = r'(&(?:\#[0-9]+|\#x[0-9a-fA-F]+|[a-zA-Z0-9]+);)' # ampersands in HTML
 # stand-alone * or _
 NOT_STRONG_RE = r'((^|\s)(\*|_)(\s|$))' #TODO check if these need attention, it seems they are just ignored
-# Asterisks
+# --- Asterisks
 # ***strongem*** or ***em*strong**
 EM_STRONG_RE = re.compile(r'(\*)\1{2}(.+?)\1(.*?)\1{2}', re.DOTALL | re.UNICODE)
 # ***strong**em*
@@ -69,7 +71,7 @@ STRONG_EM3_RE = re.compile(r'(\*)\1(?!\1)([^*]+?)\1(?!\1)(.+?)\1{3}', re.DOTALL 
 STRONG_RE = re.compile(r'(\*{2})(.+?)\1', re.DOTALL | re.UNICODE)
 # *emphasis*
 EMPHASIS_RE = re.compile(r'(\*)([^\*]+)\1', re.DOTALL | re.UNICODE)
-# Underscores
+# --- Underscores
 # ___strongem___ or ___em_strong__
 EM_STRONG2_RE = re.compile(r'(_{3})(.+?)\1', re.DOTALL | re.UNICODE)
 # __strong__
@@ -110,17 +112,24 @@ FILLER = 'x'
 
 def text_formatting(spark):
     count_formatting_udf = udf(lambda text: count_formatting(text))
+    # Load and filter
     df = spark.read.parquet("/user/***REMOVED***/StackOverflow/PostHistory.parquet") \
         .select(['_PostId', '_Text', '_PostHistoryTypeId']) \
-        .filter(col('_PostHistoryTypeId') == 2) \
-        .withColumn('processed_text', split(col('_Text'), CODESPAN_RE)) \
+        .withColumnRenamed('_PostId', '_Id') \
+        .filter(col('_PostHistoryTypeId') == 2)
+    # Count codespans
+    df = df.withColumn('processed_text', split(col('_Text'), CODESPAN_RE)) \
         .withColumn('#codespans', size(col('processed_text')) - 1) \
-        .withColumn('processed_text', array_join(col('processed_text'), FILLER)) \
-        .withColumn('processed_text', regexp_replace(col('processed_text'), ESCAPE_RE, FILLER))
+        .withColumn('processed_text', array_join(col('processed_text'), FILLER))
+    # Remove markdown escapes
+    df = df.withColumn('processed_text', regexp_replace(col('processed_text'), ESCAPE_RE, FILLER))
+    # Count inline images
+    df = df.withColumn('processed_text', split(col('processed_text'), INLINE_IMAGE_RE)) \
+        .withColumn('#inline_images', size(col('processed_text')) - 1) \
+        .withColumn('processed_text', array_join(col('processed_text'), FILLER))
+    # Remove parser helper column
+    df = df.drop('processed_text')
     return df
-        # .drop(col('processed_text'))
-        # .withColumn('text_length', length(col('_Text'))) \
-        # .withColumn('formatting', count_formatting_udf(col('_Text')))
 
 
 
