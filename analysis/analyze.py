@@ -221,7 +221,8 @@ def print_evaluate(evaluator, predictions, vector_col, model, pipeline_model_ind
     test_name = evaluator.getMetricName()
     print("%s = %g " % (test_name, test_value))
     treeModel = model.stages[pipeline_model_index]
-    print("model_summary", treeModel)
+    print("Model summary: ", treeModel)
+    print("Full model: ", treeModel.toDebugString)
     print_feature_importance(treeModel, predictions, vector_col)
 
 
