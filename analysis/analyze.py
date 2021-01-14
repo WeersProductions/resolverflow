@@ -196,18 +196,31 @@ def get_and_prepare_data(spark, original_label_col, label_col, feature_col_names
 
 
 def get_pipeline(data, label_col, vector_col, model):
+    """
+    Creates a pipeline that converts labels and includes the model step. Also returns the index of the model step.
+
+    Args:
+        data ([type]): [description]
+        label_col ([type]): [description]
+        vector_col ([type]): [description]
+        model ([type]): [description]
+
+    Returns:
+        tuple(<stages>, Number): (<stages>, <model_index>)
+    """
     labelIndexer = StringIndexer(inputCol=label_col, outputCol="indexedLabel").fit(data)
     featureIndexer = VectorIndexer(inputCol=vector_col, outputCol="indexedFeatures", maxCategories=4).fit(data)
     # Convert indexed labels back to original labels.
     labelConverter = IndexToString(inputCol="prediction", outputCol="predictedLabel",labels=labelIndexer.labels)
 
-    return [labelIndexer, featureIndexer, model, labelConverter]
+    return ([labelIndexer, featureIndexer, model, labelConverter], 2)
 
 
-def print_evaluate(evaluator, predictions, vector_col, model):
-    accuracy = evaluator.evaluate(predictions)
-    print("Test Error = %g " % (1.0 - accuracy))
-    treeModel = model.stages[2] # If more stages are added to the pipeline before the regressor/classifier, this changes.
+def print_evaluate(evaluator, predictions, vector_col, model, pipeline_model_index):
+    test_value = evaluator.evaluate(predictions)
+    test_name = evaluator.getMetricName()
+    print("%s = %g " % (test_name, test_value))
+    treeModel = model.stages[pipeline_model_index]
     print("model_summary", treeModel)
     print_feature_importance(treeModel, predictions, vector_col)
 
@@ -224,14 +237,15 @@ def decision_tree_regressor(spark):
     (trainingData, testData) = data.randomSplit([0.8, 0.2])
 
     dt = DecisionTreeRegressor(labelCol="indexedLabel", featuresCol="indexedFeatures")
-    pipeline = Pipeline(stages=get_pipeline(data, label_col, vector_col, data))
+    stages, pipeline_model_idx = get_pipeline(data, label_col, vector_col, dt)
+    pipeline = Pipeline(stages=stages)
     model = pipeline.fit(trainingData)
     predictions = model.transform(testData)
     # For debugging purposes, show some of the predictions and their original labels.
     predictions.select("predictedLabel", "label", "features").show(5)
 
-    evaluator = RegressionEvaluator(labelCol="indexedLabel", predictionCol="prediction", metricName="accuracy")
-    print_evaluate(evaluator, predictions, vector_col, model)
+    evaluator = RegressionEvaluator(labelCol="indexedLabel", predictionCol="prediction", metricName="mae")
+    print_evaluate(evaluator, predictions, vector_col, model, pipeline_model_idx)
 
 
 def print_feature_importance(model, prediction_df, feature_col):
