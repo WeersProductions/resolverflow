@@ -1,6 +1,8 @@
 """
 Based on: https://github.com/BhaskarBiswas/PySpark-Codes/blob/master/Automated_VIF_Spark.py
 """
+from pyspark.sql import SparkSession
+
 from pyspark.ml.regression import LinearRegression
 from pyspark.ml.evaluation import RegressionEvaluator
 
@@ -26,3 +28,9 @@ def calc_feature_pair_vifs(spark):
             r_squared = evaluator.evaluate(prediction, {evaluator.metricName: "r2"})
             vif = 1 / (1 - r_squared)
             print(feature_data.columns[i] + " - " + feature_data.columns[j] + ": " + vif)
+
+
+if __name__ == "__main__":
+    print("Starting correlation analysis.")
+    spark = SparkSession.builder.getOrCreate()
+    calc_feature_pair_vifs(spark)
