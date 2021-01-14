@@ -16,12 +16,12 @@ def calc_feature_pair_vifs(spark):
     feature_data = feature_data.drop("number_of_lines")
 
     # For testing
-    feature_data = feature_data.select("user_age", "post_amount", "title_number_of_characters")
+    feature_data = feature_data.select("user_age", "posts_amount", "title_number_of_characters")
 
     for i in range(len(feature_data.columns) - 1):
         for j in range(i + 1, len(feature_data.columns)):
             df = feature_data.rdd.map(lambda x: [x[i], x[j]]).toDF(['feature', 'label'])
-            linear_regression = LinearRegression(featuresCol='features', labelCol='label')
+            linear_regression = LinearRegression(featuresCol='feature', labelCol='label')
             linear_regression_model = linear_regression.fit(df)
             prediction = linear_regression_model.transform(df)
             evaluator = RegressionEvaluator(predictionCol='prediction', labelCol='label')
@@ -31,6 +31,6 @@ def calc_feature_pair_vifs(spark):
 
 
 if __name__ == "__main__":
-    print("Starting correlation analysis.")
+    print("Starting vif analysis.")
     spark = SparkSession.builder.getOrCreate()
     calc_feature_pair_vifs(spark)

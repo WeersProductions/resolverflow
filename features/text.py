@@ -1,7 +1,6 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, length, udf
-import marko
-from collections import Counter
+from pyspark.sql.functions import col, length, udf, split, size, array_join, regexp_replace
+import re
 
 spark = SparkSession.builder.getOrCreate()
 
@@ -16,83 +15,117 @@ def text_preprocess():
 
 # Features
 
+# --- REGEX ---
+# Patterns from two sources. Alterations made by us.
+# - Copyright 2007, 2008 The Python Markdown Project (v. 1.7 and later) Copyright 2004, 2005, 2006 Yuri Takhteyev (v. 0.2-1.6b) Copyright 2004 Manfred Stienstra (the original version)
+# - Marko. A markdown parser with high extensibility. Author: Frost Ming <mianghong@gmail.com>
 
-def text_length_and_formatting(spark):
+# Inline elements:
+# These are noted in order of precedence.
+NOIMG = r'(?<!\!)'
+BRACKETED = r'\[([^\]]*)\]'
+LINK_START_RE = NOIMG + BRACKETED
+IMAGE_START_RE = r'\!' + BRACKETED
+LINK_END_RE = re.compile(r'''\(\s*(?:(<[^<>]*>)\s*(?:('[^']*'|"[^"]*")\s*)?\))?''', re.DOTALL | re.UNICODE)
+REFERENCE_END_RE = re.compile(r'\s?' + BRACKETED, re.DOTALL | re.UNICODE)
+
+# `e=f()` or ``e=f("`")``
+CODESPAN_RE = r'(?:(?<!\\)((?:\\{2})+)(?=`+)|(?<!\\)(`+)(.+?)(?<!`)\2(?!`))'
+# \<
+ESCAPE_RE = r'\\(.)'
+# [Google][3]
+REFERENCE_RE = LINK_START_RE + REFERENCE_END_RE
+# [text](url) or [text](<url>) or [text](url "title")
+LINK_RE = LINK_START_RE + LINK_END_RE
+# ![alttxt](http://x.com/) or ![alttxt](<http://x.com/>)
+IMAGE_LINK_RE = IMAGE_START_RE + LINK_END_RE # image link
+# ![alt text][2]
+IMAGE_REFERENCE_RE = IMAGE_START_RE + REFERENCE_END_RE  # image ref
+# [Google]
+REFERENCE_RE = LINK_START_RE # short ref
+# ![ref]
+IMAGE_REFERENCE_RE = IMAGE_START_RE # short image ref
+# <http://www.123.com>
+AUTOLINK_RE = r'<((?:[Ff]|[Hh][Tt])[Tt][Pp][Ss]?://[^<>]*)>'
+# <me@example.com>
+AUTOMAIL_RE = r'<([^<> !]*@[^@<> ]*)>'
+# two spaces at end of line
+LINE_BREAK_RE = r'  \n'
+# <...>
+HTML_RE = r'(<([a-zA-Z/][^<>]*|!--(?:(?!<!--|-->).)*--)>)' #TODO this now finds start tags, end tags, and self-closing tags. Change that a start+end tag pair count as 1.
+ENTITY_RE = r'(&(?:\#[0-9]+|\#x[0-9a-fA-F]+|[a-zA-Z0-9]+);)' # ampersands in HTML
+# stand-alone * or _
+NOT_STRONG_RE = r'((^|\s)(\*|_)(\s|$))' #TODO check if these need attention, it seems they are just ignored
+# Asterisks
+# ***strongem*** or ***em*strong**
+EM_STRONG_RE = re.compile(r'(\*)\1{2}(.+?)\1(.*?)\1{2}', re.DOTALL | re.UNICODE)
+# ***strong**em*
+STRONG_EM_RE = re.compile(r'(\*)\1{2}(.+?)\1{2}(.*?)\1', re.DOTALL | re.UNICODE)
+# **strong*em***
+STRONG_EM3_RE = re.compile(r'(\*)\1(?!\1)([^*]+?)\1(?!\1)(.+?)\1{3}', re.DOTALL | re.UNICODE)
+# **strong**
+STRONG_RE = re.compile(r'(\*{2})(.+?)\1', re.DOTALL | re.UNICODE)
+# *emphasis*
+EMPHASIS_RE = re.compile(r'(\*)([^\*]+)\1', re.DOTALL | re.UNICODE)
+# Underscores
+# ___strongem___ or ___em_strong__
+EM_STRONG2_RE = re.compile(r'(_{3})(.+?)\1', re.DOTALL | re.UNICODE)
+# __strong__
+STRONG2_RE = re.compile(r'(_{2})(.+?)\1', re.DOTALL | re.UNICODE)
+# _emphasis_
+EMPHASIS2_RE = re.compile(r'(_)([^_]+)\1', re.DOTALL | re.UNICODE)
+
+
+
+# Precedence: you start with the highest number = highest priority
+
+# Block elements:
+    # 1
+    # Paragraph
+    # 2
+    # 3
+    # 4
+    # CodeBlock
+    # 5
+    # HTMLBlock
+    # SetextHeading
+    # ListItem
+    # LinkRefDef
+    # BlankLine
+    # Document = virtual
+    # 6
+    # Quote
+    # Heading
+    # List
+    # 7
+    # FencedCode
+    # 8
+    # ThematicBreak
+
+# Replaces formatted text that has already been processed
+FILLER = 'x'
+
+
+def text_formatting(spark):
     count_formatting_udf = udf(lambda text: count_formatting(text))
     df = spark.read.parquet("/user/***REMOVED***/StackOverflow/PostHistory.parquet") \
         .select(['_Id', '_Text', '_PostHistoryTypeId']) \
-        .filter(col('_PostHistoryTypeId') == 6) \
-        .withColumn('text_length', length(col('_Text'))) \
-        .withColumn('formatting', count_formatting_udf(col('_Text')))
-        # .withColumn('has_rules', col('_Text').contains('---')) \
-    # TODO: for has rules, check it's succeeded by whitespace, and whether it's not part of code or quotes
+        .filter(col('_PostHistoryTypeId') == 2) \
+        .withColumn('processed_text', split(col('_Text'), CODESPAN_RE)) \
+        .withColumn('#codespans', size(col('processed_text')) - 1) \
+        .withColumn('processed_text', array_join(col('processed_text'), FILLER)) \
+        .withColumn('processed_text', regexp_replace(col('processed_text'), ESCAPE_RE, FILLER))
     return df
+        # .withColumn('text_length', length(col('_Text'))) \
+        # .withColumn('formatting', count_formatting_udf(col('_Text')))
 
-def count_formatting(text):
-    ''' Parses the text as Markdown and returns count of each formatting type '''
-
-    def get_children_types(elem):
-        ''' For a markdown parse tree node, get the types of its children '''
-        if hasattr(elem, 'children'):
-            children = elem.children
-        else:
-            children = []
-        
-        if type(children) == list:      # Children
-            result = Counter([get_format_type(child) for child in children])
-            for child in children:
-                result += get_children_types(child)
-        elif type(children) != str:     # Single child
-            result = Counter([get_format_type(children)])
-        else:                           # No children
-            result = Counter()
-        return result
-
-    def get_format_type(elem):
-        ''' For a markdown parse tree node get its formatting type '''
-        return elem.__class__.__name__
-
-    if text is not None:
-        string_text = text.encode("utf8")
-    else:
-        string_text = ""
-        
-    md_tree = marko.parse(string_text)
-    md_types = get_children_types(md_tree)
-    return dict(md_types).__str__()
-
-
-def has_bold():
-    return False
-
-
-def has_italic():
-    return False
 
 
 def has_underline():
     return False
 
-
-def has_headers():
-    return False
-
-
 def has_strike():
     return False
-
-
-def has_bulletlists():
-    return False
-
-
-def has_numlists():
-    return False
-
-
-def has_links():
-    return False
-
 
 def has_greetings():
     return False
