@@ -22,6 +22,9 @@ def calc_correlation(spark):
     """
     Calculates the Pearson Correlation Coefficient
 
+    TODO: this currently calculates a corr matrix between every feature.
+    Would be nice if we first calculate correlation between every feature and the label. We can drop some features after this.
+
     Example result:
     ['_Id', 'contains_questionmark', 'title_length', 'HasAnswer', '_PostHistoryTypeId', 'number_of_characters', 'number_of_interpunction_characters', 'interpunction_ratio', 'number_of_lines', 'average_line_length', 'number_of_words', 'average_word_length', 'creation_seconds', 'number_of_tags', 'contains_language_tag', 'contains_platform_tag', 'age', 'posts_amount', 'IsQuestion']
     DenseMatrix([[  1.00000000e+00,  -3.23648297e-02,   1.36629899e-01,
