@@ -11,8 +11,8 @@ from text import text_formatting
 
 # Define what features should be extracted and combined here.
 # If you add a new feature, be sure to import it correctly and pass it to the spark-submit command.
-# all_features = [title_features_df, post_answered_df, text_features_df, post_time, tag_info_df, user_age_df, user_question_amount, post_is_question_df]
-all_features = [text_formatting]
+all_features = [title_features_df, post_answered_df, text_features_df, post_time, tag_info_df, user_age_df, user_question_amount, post_is_question_df]
+# all_features = [text_formatting]
 
 def get_feature_name(feature):
     return feature.__name__
