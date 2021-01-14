@@ -2,10 +2,6 @@ from pyspark.sql import SparkSession, Window
 from pyspark.sql.functions import col, max
 from pyspark.sql.types import IntegerType
 
-PLOT_GRAPHS = False
-
-if PLOT_GRAPHS:
-    pass
 
 INTEGER_FEATURES = ["title_number_of_characters", "number_of_characters", "number_of_interpunction_characters",
                     "number_of_lines", "number_of_words", "number_of_tags", "posts_amount", "answered_posts_amount"]
