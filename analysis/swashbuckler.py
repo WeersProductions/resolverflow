@@ -3,9 +3,9 @@ from pyspark.sql.functions import col, max
 from pyspark.sql.types import IntegerType
 
 
-INTEGER_FEATURES = ["title_number_of_characters", "number_of_characters", "number_of_interpunction_characters",
+INTEGER_FEATURES = ["title_number_of_characters", "number_of_characters", "number_of_punctuation_characters",
                     "number_of_lines", "number_of_words", "number_of_tags", "posts_amount", "answered_posts_amount"]
-FLOAT_FEATURES = ["interpunction_ratio", "average_line_length", "average_word_length", "user_age", "creation_seconds"]
+FLOAT_FEATURES = ["punctuation_ratio", "average_line_length", "average_word_length", "user_age", "creation_seconds"]
 BOOLEAN_FEATURES = []
 
 
