@@ -28,7 +28,7 @@ def mass_apply(dataframe, **functions):
     return dataframe.agg(**functions)
 
 
-def create_parquet(spark_session):
+def create_parquet_files(spark_session):
     """
     Create a histogram for each feature
 
@@ -42,24 +42,28 @@ def create_parquet(spark_session):
     all_features = spark_session.read.parquet("/user/***REMOVED***/StackOverflow/output_stackoverflow.parquet")
     all_features = all_features.filter(all_features["is_question"])
 
+    all_results = []
+
     for feature in INTEGER_FEATURES + FLOAT_FEATURES:
+        original_feature = feature
         if feature in FLOAT_FEATURES:
             # Bucketize each float feature into "${feature}_bucket_index" columns
-            original_feature = feature
             feature += '_bucket_index'
-            window = Window.partitionBy(original_feature).rowsBetween(Window.unboundedPreceding,
-                                                                      Window.unboundedFollowing)
-            all_features.withColumn(feature,
-                                    (col(original_feature) / max(col(original_feature)).over(window) * 100000)
-                                    .cast(IntegerType()))
-            # TODO: fine-tune the bucket count (read: how high can we go?)
+            window = Window.partitionBy(original_feature) \
+                .rowsBetween(Window.unboundedPreceding, Window.unboundedFollowing)
 
-        # FIXME: dit moet niet meer per feature zijn ofzo want het moet gedumpt worden naar een parqet bestand
+            all_features = all_features.withColumn(feature,
+                                    (col(original_feature) / max(col(original_feature)).over(window) * 100000)
+                                    .cast(IntegerType()))  # TODO: fine-tune the bucket count
+
         for resolved in [True, False]:
-            feature_data = all_features.filter(col('has_answer') == resolved) \
+            new_file = all_features.filter(col('has_answer') == resolved) \
                 .select(feature) \
                 .groupBy(feature).count()
-            # .orderBy(feature)
+
+            filename = original_feature + '_resolved' if resolved else original_feature + '_not_resolved'
+            new_file.write.mode('overwrite')\
+                .parquet('/user/***REMOVED***/StackOverflow/swashbuckler/output_' + filename + '.parquet')
 
         #     # Retrieve the counts, which is small data
         #     values = [row[0] for row in feature_data.select('feature')]
@@ -76,12 +80,11 @@ def create_parquet(spark_session):
         # if PLOT_GRAPHS:
         #     plt.savefig('histogram_' + feature + '.png')
 
-    return feature_data
+    return all_results
 
 
 if __name__ == "__main__":
     print("Creating histogram plots")
     spark = SparkSession.builder.getOrCreate()
 
-    features = create_parquet(spark)
-    features.write.mode("overwrite").parquet("/user/***REMOVED***/StackOverflow/bucketed_features.parquet")
+    create_parquet_files(spark)
