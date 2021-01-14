@@ -3,7 +3,8 @@ from pyspark.sql.functions import col, length
 
 
 def title_features_df(spark):
-    """ Extract features from the title
+    """
+    Extract features from the title
 
     Args:
         spark (SparkSession): used to run queries and commands
