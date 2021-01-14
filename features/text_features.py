@@ -12,11 +12,11 @@ def text_features_df(spark):
         DataFrame: With columns [
             (post)_Id,
             number_of_characters,
-            number_of_interpunction_characters,
+            number_of_punctuation_characters,
             number_of_words,
             number_of_lines,
             number_of_emoji_characters,
-            interpunction_ratio,
+            punctuation_ratio,
             emoji_ratio
             average_word_length,
             average_line_length
@@ -34,9 +34,9 @@ def text_features_df(spark):
 
     df = post_history_df.join(post_df, post_df['_Id'] == post_history_df['_PostId']) \
         .withColumn('number_of_characters', length(col('_Text'))) \
-        .withColumn('number_of_interpunction_characters', size(split(col('_Text'), r'[-\[\]{}()*+?.,\\^$|#]')) - 1) \
+        .withColumn('number_of_punctuation_characters', size(split(col('_Text'), r'[-\[\]{}()*+?.,\\^$|#]')) - 1) \
         .withColumn('number_of_emoji_characters', size(split(col('_Text'), r'[\uD83C -\uDBFF\uDC00 -\uDFFF]')) - 1) \
-        .withColumn('interpunction_ratio', col('number_of_interpunction_characters') / col('number_of_characters')) \
+        .withColumn('punctuation_ratio', col('number_of_punctuation_characters') / col('number_of_characters')) \
         .withColumn('emoji_ratio', col('number_of_emoji_characters') / col('number_of_characters')) \
         .withColumn('number_of_lines', size(split(col('_Text'), r'\n'))) \
         .withColumn('average_line_length', col('number_of_characters') / col('number_of_lines')) \

@@ -254,7 +254,7 @@ You can find the database schema here: https://meta.stackexchange.com/questions/
 ```
 >>> spark.read.parquet("/user/***REMOVED***/StackOverflow/output_stackoverflow.parquet").show()
 +------+---------------------+------------+---------+--------------------+------------------+--------------------+----------------------------------+--------------------+---------------+-------------------+---------------+-------------------+----------------+--------------+---------------------+---------------------+-------+------------+----------+
-|   _Id|contains_questionmark|title_length|HasAnswer|               _Text|_PostHistoryTypeId|number_of_characters|number_of_interpunction_characters| interpunction_ratio|number_of_lines|average_line_length|number_of_words|average_word_length|creation_seconds|number_of_tags|contains_language_tag|contains_platform_tag|    age|posts_amount|IsQuestion|
+|   _Id|contains_questionmark|title_length|HasAnswer|               _Text|_PostHistoryTypeId|number_of_characters|number_of_punctuation_characters| punctuation_ratio|number_of_lines|average_line_length|number_of_words|average_word_length|creation_seconds|number_of_tags|contains_language_tag|contains_platform_tag|    age|posts_amount|IsQuestion|
 +------+---------------------+------------+---------+--------------------+------------------+--------------------+----------------------------------+--------------------+---------------+-------------------+---------------+-------------------+----------------+--------------+---------------------+---------------------+-------+------------+----------+
 | 34155|                false|          52|     true|When do you use t...|                 1|                  35|                                 1| 0.02857142857142857|              1|               35.0|              7|                5.0|      1219990078|             5|                 true|                false| 346749|          71|      true|
 | 63916|                false|          33|    false|How do you deal w...|                 1|                  48|                                 1|0.020833333333333332|              1|               48.0|              9|  5.333333333333333|      1221485128|             2|                false|                false|     60|          89|      true|
@@ -294,7 +294,7 @@ Calculated using `spearman`. This means that we cannot simply rely on the value 
 |-0.19493722195095384|    creation_seconds|has_answer|
 |-0.00404959346628...|      number_of_tags|has_answer|
 |  0.0701465992728538|contains_language...|has_answer|
-|0.020167772743942793| interpunction_ratio|has_answer|
+|0.020167772743942793| punctuation_ratio|has_answer|
 |6.850081805398476E-4|     number_of_lines|has_answer|
 |-0.00491454014554...| average_line_length|has_answer|
 |-0.00317468875425...|     number_of_words|has_answer|

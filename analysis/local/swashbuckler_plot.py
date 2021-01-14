@@ -33,15 +33,15 @@ if __name__ == "__main__":
                 y_unresolved.append(unresolved_dict.get(x, 0))
 
             # Create two bar plots that are stacked atop each other
-            resolved_bar = plt.bar(x_points, y_resolved, 0.1, color='g')
-            unresolved_bar = plt.bar(x_points, y_unresolved, 0.1, bottom=y_resolved,  color='r')
+            resolved_bar = plt.bar(x_points, y_resolved, 0.2, color='g')
+            unresolved_bar = plt.bar(x_points, y_unresolved, 0.2, bottom=y_resolved,  color='r')
 
-            plt.yscale('log')
+            # plt.yscale('log')
             plt.xlim(xmax=max(resolved_counts[0].tolist() + unresolved_counts[0].tolist()))
             plt.ylim(ymax=max(resolved_counts[1].tolist() + unresolved_counts[1].tolist()))
 
             plt.ylabel('#ocurrences')
-            plt.title(pickle_file[:-7])
+            plt.title(pickle_file[:-9])
             plt.legend((resolved_bar[0], unresolved_bar[1]), ('resolved', 'unresolved'))
 
             plt.savefig('histogram_' + pickle_file[:-9] + '.svg')
