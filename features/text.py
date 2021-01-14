@@ -111,7 +111,7 @@ FILLER = 'x'
 def text_formatting(spark):
     count_formatting_udf = udf(lambda text: count_formatting(text))
     df = spark.read.parquet("/user/***REMOVED***/StackOverflow/PostHistory.parquet") \
-        .select(['_Id', '_Text', '_PostHistoryTypeId']) \
+        .select(['_PostId', '_Text', '_PostHistoryTypeId']) \
         .filter(col('_PostHistoryTypeId') == 2) \
         .withColumn('processed_text', split(col('_Text'), CODESPAN_RE)) \
         .withColumn('#codespans', size(col('processed_text')) - 1) \
