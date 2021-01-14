@@ -1,5 +1,5 @@
-import os
 import pickle
+import subprocess
 from sys import argv
 
 import numpy as np
@@ -15,12 +15,18 @@ if __name__ == "__main__":
 
     print("Converting .parquet to .pickle")
     spark = SparkSession.builder.getOrCreate()
-    for parquet_loc in os.listdir(argv[1]):
-        parquet_file = spark.read.parquet(argv[1] + parquet_loc)
+
+    cmd = 'hdfs dfs -ls ' + argv[1]
+    files = subprocess.check_output(cmd, shell=True).strip().split('\n')
+    files.pop(0)
+
+    for file_listing in files:
+        file_name = file_listing.split('/')[-1]
+        parquet_file = spark.read.parquet(argv[1] + file_name)
         all_data = np.array(parquet_file.collect())
         pickle_data = {
             "column_names": parquet_file.columns,
             "data_points": all_data
         }
 
-        pickle.dump(pickle_data, open(parquet_loc[:-8] + ".pickle", "wb"))
+        pickle.dump(pickle_data, open(file_name[:-8] + ".pickle", "wb"))
