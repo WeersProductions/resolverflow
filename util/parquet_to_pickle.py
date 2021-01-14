@@ -8,7 +8,7 @@ from pyspark.sql import SparkSession
 if __name__ == "__main__":
     """
     Run this locally (not with --deploy-mode cluster). This will create a pickle file.
-    To run: spark-submit StackOverflow/analysis/parque_to_pickle.py INPUT_DIR 2> /dev/null
+    To run: spark-submit StackOverflow/analysis/parquet_to_pickle.py INPUT_DIR 2> /dev/null
     To copy data to local machine: scp sXXXXXXX@ctitXXX.ewi.utwente.nl:output.pickle ./analysis/local/data
     Replace INPUT_DIR with the input path where the input .parquet files can be found
     """
