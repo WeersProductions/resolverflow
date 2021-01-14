@@ -61,7 +61,7 @@ def create_parquet_files(spark_session):
                 .select(feature) \
                 .groupBy(feature).count()
 
-            filename = original_feature + '_resolved' if resolved else original_feature + '_not_resolved'
+            filename = original_feature + '_1' if resolved else original_feature + '_0'
             new_file.write.mode('overwrite')\
                 .parquet('/user/***REMOVED***/StackOverflow/swashbuckler/output_' + filename + '.parquet')
 
