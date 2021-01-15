@@ -15,9 +15,7 @@ def text_features_df(spark):
             #punctuation_characters,
             #words,
             #lines,
-            #emoji_characters,
             punctuation_ratio,
-            emoji_ratio
             average_word_length,
             average_line_length
         ]
@@ -35,9 +33,7 @@ def text_features_df(spark):
     df = post_history_df.join(post_df, post_df['_Id'] == post_history_df['_PostId']) \
         .withColumn('#characters', length(col('_Text'))) \
         .withColumn('#punctuation_characters', size(split(col('_Text'), r'[-\[\]{}()*+?.,\\^$|#]')) - 1) \
-        .withColumn('#emoji_characters', size(split(col('_Text'), r'[\uD83C -\uDBFF\uDC00 -\uDFFF]')) - 1) \
         .withColumn('punctuation_ratio', col('#punctuation_characters') / col('#characters')) \
-        .withColumn('emoji_ratio', col('#emoji_characters') / col('#characters')) \
         .withColumn('#lines', size(split(col('_Text'), r'\n'))) \
         .withColumn('average_line_length', col('#characters') / col('#lines')) \
         .withColumn('#words', size(split(col('_Text'), r'\s'))) \
