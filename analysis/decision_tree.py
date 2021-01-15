@@ -185,7 +185,7 @@ if __name__ == "__main__":
     spark = SparkSession.builder.getOrCreate()
 
     # Train a model and print feature importance.
-    features = ["title_contains_questionmark", "title_number_of_characters", "creation_seconds", "number_of_tags", "contains_language_tag", "contains_platform_tag", "user_age", "posts_amount", "answered_posts_amount"]
+    features = ["title_contains_questionmark", "#title_characters", "creation_seconds", "#tags", "contains_language_tag", "contains_platform_tag", "user_age", "posts_amount", "answered_posts_amount"]
     label = "has_answer"
 
     regressor_result = decision_tree_regressor(spark, label, features)

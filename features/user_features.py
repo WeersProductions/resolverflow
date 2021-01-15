@@ -36,10 +36,10 @@ def user_question_amount(spark):
 
     result = df_posts.join(df_post_count, '_OwnerUserId')
     # Count the amount of posts before this post was made.
-    result = result.withColumn('posts_amount', when(col('CreationTimestamp') < col('x_CreationTimestamp'), 1).otherwise(0)).groupBy(['_Id', '_OwnerUserId', 'CreationTimestamp']).agg(sum('posts_amount').alias('posts_amount'))
+    result = result.withColumn('#posts', when(col('CreationTimestamp') < col('x_CreationTimestamp'), 1).otherwise(0)).groupBy(['_Id', '_OwnerUserId', 'CreationTimestamp']).agg(sum('#posts').alias('#posts'))
     # Count the amount of answered posts before this post was made
     result = result.join(df_post_count, '_OwnerUserId')
-    result = result.withColumn('answered_posts_amount', when((col('CreationTimestamp') < col('x_CreationTimestamp')) & col('x__AcceptedAnswerId').isNotNull(), 1).otherwise(0)).groupBy(['_Id', 'CreationTimestamp', 'posts_amount']).agg(sum('answered_posts_amount').alias('answered_posts_amount'))
+    result = result.withColumn('#answered_posts', when((col('CreationTimestamp') < col('x_CreationTimestamp')) & col('x__AcceptedAnswerId').isNotNull(), 1).otherwise(0)).groupBy(['_Id', 'CreationTimestamp', '#posts']).agg(sum('#answered_posts').alias('#answered_posts'))
     result = result.drop('CreationTimestamp')
 
     return result

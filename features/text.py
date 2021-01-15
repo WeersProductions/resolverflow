@@ -5,7 +5,6 @@ from regex import *
 spark = SparkSession.builder.getOrCreate()
 
 
-
 def text_formatting(spark):
     # Replaces formatted text that has already been processed
     FILLER = 'x'
