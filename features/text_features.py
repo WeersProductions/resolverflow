@@ -29,7 +29,7 @@ def text_features_df(spark):
 
     post_df = spark.read.parquet('/user/***REMOVED***/StackOverflow/Posts.parquet') \
         .select(['_Id', '_PostTypeId']) \
-        .withColumn('is_question', when(col("_PostTypeId") == 1, True).otherwise(False)) \
+        .filter(col('_PostTypeId') == 1) \
         .drop("_PostTypeId")
 
     df = post_history_df.join(post_df, post_df['_Id'] == post_history_df['_PostId']) \
@@ -42,7 +42,7 @@ def text_features_df(spark):
         .withColumn('average_line_length', col('number_of_characters') / col('number_of_lines')) \
         .withColumn('number_of_words', size(split(col('_Text'), r'\s'))) \
         .withColumn('average_word_length', col('number_of_characters') / col('number_of_words')) \
-        .drop('_Text', '_PostHistoryTypeId')
+        .drop('_Text', '_PostHistoryTypeId', '_PostId')
     return df
 
 
