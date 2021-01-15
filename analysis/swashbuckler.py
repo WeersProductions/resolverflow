@@ -2,14 +2,10 @@ from pyspark.sql import SparkSession, Window
 from pyspark.sql.functions import col, max
 from pyspark.sql.types import IntegerType
 
-PLOT_GRAPHS = False
 
-if PLOT_GRAPHS:
-    pass
-
-INTEGER_FEATURES = ["title_number_of_characters", "number_of_characters", "number_of_interpunction_characters",
+INTEGER_FEATURES = ["title_number_of_characters", "number_of_characters", "number_of_punctuation_characters",
                     "number_of_lines", "number_of_words", "number_of_tags", "posts_amount", "answered_posts_amount"]
-FLOAT_FEATURES = ["interpunction_ratio", "average_line_length", "average_word_length", "user_age", "creation_seconds"]
+FLOAT_FEATURES = ["punctuation_ratio", "average_line_length", "average_word_length", "user_age", "creation_seconds"]
 BOOLEAN_FEATURES = []
 
 
@@ -61,24 +57,9 @@ def create_parquet_files(spark_session):
                 .select(feature) \
                 .groupBy(feature).count()
 
-            filename = original_feature + '_resolved' if resolved else original_feature + '_not_resolved'
+            filename = original_feature + '_1' if resolved else original_feature + '_0'
             new_file.write.mode('overwrite')\
                 .parquet('/user/***REMOVED***/StackOverflow/swashbuckler/output_' + filename + '.parquet')
-
-        #     # Retrieve the counts, which is small data
-        #     values = [row[0] for row in feature_data.select('feature')]
-        #     counts = [row[0] for row in feature_data.select('count')]
-        #
-        #     # Add zero counts to empty values
-        #     histogram = [counts[values.index(i)] if i in values else 0 for i in range(max(values))]
-        #
-        #     if PLOT_GRAPHS:
-        #         # Plot the histogram
-        #         label_name = 'Resolved' if resolved else 'Not resolved'
-        #         plt.hist(range(len(histogram)), len(histogram), weights=histogram, alpha=0.5, label=label_name)
-        #
-        # if PLOT_GRAPHS:
-        #     plt.savefig('histogram_' + feature + '.png')
 
     return all_results
 
