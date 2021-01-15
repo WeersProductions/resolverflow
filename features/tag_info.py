@@ -11,7 +11,7 @@ def tag_info_df(spark):
     Returns:
         DataFrame: With columns [
             (post)_Id,
-            number_of_tags,
+            #tags,
             contains_language_tag,
             contains_platform_tag
         ]
@@ -146,7 +146,7 @@ def tag_info_df(spark):
         .filter(col("_PostHistoryTypeId") == 3) \
         .withColumn("_Tags", expr("substring(_Tags, 2, length(_Tags) - 2)")) \
         .withColumn("_Tags", split(col("_Tags"), "><")) \
-        .withColumn("number_of_tags", when(size("_Tags") < 0, 0).otherwise(size("_Tags"))) \
+        .withColumn("#tags", when(size("_Tags") < 0, 0).otherwise(size("_Tags"))) \
         .withColumn("contains_language_tag", size(array_intersect("_Tags", language_list_col)) > 0) \
         .withColumn("contains_platform_tag", size(array_intersect("_Tags", platform_list_col)) > 0) \
         .drop("_Tags", "_PostHistoryTypeId")

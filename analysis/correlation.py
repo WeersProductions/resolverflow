@@ -43,4 +43,4 @@ def calc_correlation(spark, feature_columns):
 if __name__ == "__main__":
     print("Starting correlation analysis.")
     spark = SparkSession.builder.getOrCreate()
-    calc_correlation_label(spark, ["title_contains_questionmark", "title_number_of_characters", "number_of_characters", "number_of_punctuation_characters", "punctuation_ratio", "number_of_lines", "average_line_length", "number_of_words", "average_word_length", "creation_seconds", "number_of_tags", "contains_language_tag", "contains_platform_tag", "user_age", "posts_amount", "answered_posts_amount"], "has_answer")
+    calc_correlation_label(spark, ["title_contains_questionmark", "#title_characters", "#characters", "#punctuation_characters", "punctuation_ratio", "#lines", "average_line_length", "#words", "average_word_length", "creation_seconds", "#tags", "contains_language_tag", "contains_platform_tag", "user_age", "posts_amount", "answered_posts_amount"], "has_answer")
