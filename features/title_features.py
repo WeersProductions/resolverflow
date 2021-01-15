@@ -16,12 +16,13 @@ def title_features_df(spark):
         ]
     """
     df = spark.read.parquet("/user/***REMOVED***/StackOverflow/PostHistory.parquet") \
-        .select(["_Id", "_Text", "_PostHistoryTypeId"]) \
+        .select(["_PostId", "_Text", "_PostHistoryTypeId"]) \
         .filter(col('_PostHistoryTypeId') == 1) \
         .dropna() \
         .withColumn('title_contains_questionmark', col("_Text").contains('?')) \
         .withColumn('title_number_of_characters', length(col("_Text"))) \
-        .drop("_Text", "_PostHistoryTypeId")
+        .drop("_Text", "_PostHistoryTypeId") \
+        .withColumnRenamed("_PostId", "_Id")
 
     return df
 
