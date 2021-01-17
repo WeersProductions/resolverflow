@@ -10,7 +10,9 @@ if __name__ == "__main__":
 
     pickle_path = '/Users/kyle/Projects/PycharmProjects/MBDProject/pickles/'
     for pickle_file in tqdm(os.listdir(pickle_path)):
-        if pickle_file[-8] == '1':  # Resolved files only, we will load unresolved a few lines later (manually)
+
+        # Resolved files only, we will load unresolved a few lines later (manually)
+        if pickle_file[-8] == '1':  # and pickle_file == 'output_#tags_1.pickle':
             print('Plotting ' + pickle_file[:-9] + '...')
 
             resolved_data_points = pickle.load(open(pickle_path + pickle_file, "rb"))
@@ -22,6 +24,7 @@ if __name__ == "__main__":
             # counts: [[indices], [values]]
 
             # Change data format into {index: count} for both resolved and unresolved
+            # TODO: don't use tolist() loser
             resolved_dict = dict(izip(resolved_counts[0].tolist(), resolved_counts[1].tolist()))
             unresolved_dict = dict(izip(unresolved_counts[0].tolist(), unresolved_counts[1].tolist()))
 
@@ -42,20 +45,24 @@ if __name__ == "__main__":
                 print(y_resolved)
                 print(y_unresolved)
                 print('There is a None count in here somewhere above, ensure everything is in order!\n'
-                      '(should be fine if you see a whole bunch of numbers/data points...')
+                      '(should be fine if you see a whole bunch of numbers/data points...)')
 
-            resolved_bar = plt.bar(x_points, y_resolved, 0.2, color='g')
-            unresolved_bar = plt.bar(x_points, y_unresolved, 0.2, bottom=y_resolved, color='r')
-
-            # plt.yscale('log')
-            plt.xlim(xmin=0, xmax=max(resolved_counts[0].tolist() + unresolved_counts[0].tolist()))
-            plt.ylim(ymin=0, ymax=max(resolved_counts[1].tolist() + unresolved_counts[1].tolist()))
+            plt.subplot(111)
+            resolved_bar = plt.bar([elem - 0.25 for elem in x_points], y_resolved, 0.5, color='lime', align='center')
+            unresolved_bar = plt.bar([elem + 0.25 for elem in x_points], y_unresolved, 0.5, color='fuchsia', align='center')
 
             plt.ylabel('#ocurrences')
             plt.title(pickle_file[:-9])
             plt.legend((resolved_bar[0], unresolved_bar[1]), ('resolved', 'unresolved'))
 
-            plt.savefig('histogram_' + pickle_file[:-9] + '.svg')
+            # The #tags graph looks comically bad with log scales, you might actually try it just to see for yourself...
+            if not pickle_file == 'output_#tags_1.pickle':
+                plt.yscale('log')
+
+            if pickle_file[7:-9] in ['#lines', '#words', 'average_line_length', 'average_word_length', '#punctuation_characters']:
+                plt.xscale('log')
+
+            plt.savefig('./swashplots/' + pickle_file[7:-9] + '.png', dpi=300)
             # plt.show()
 
             print("Done!")
