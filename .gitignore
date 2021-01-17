@@ -172,3 +172,4 @@ $RECYCLE.BIN/
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,windows,pycharm,vscode
 /analysis/local/swashplots/stacked/
+/analysis/local/swashplots/
