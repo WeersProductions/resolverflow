@@ -13,7 +13,8 @@ def calc_correlation_label(spark, feature_columns, label_column):
   result = []
   feature_data = load_feature_data(spark)
   for feature_column in feature_columns:
-    corr = calc_correlation([label_column, feature_column], feature_data)
+    columns = [label_column, feature_column]
+    corr = calc_correlation(columns, feature_data.select(columns).dropna())
     corr_value = corr.toArray()[1][0].item() # .item() is used to go to a python native type instead of numpy.
     print("Correlation between ", label_column, " and ", feature_column, ": ", corr_value)
     result.append([label_column, feature_column, corr_value])
