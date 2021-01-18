@@ -125,7 +125,7 @@ def text_formatting(spark):
         .withColumn(COLNAME, array_join(COL, FILLER))
     
     # Remove parser helper column
-    df = df.drop(COLNAME)
+    df = df.drop('_Text', '_PostHistoryTypeId', '_PostId', COLNAME)
     return df
 
 
