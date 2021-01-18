@@ -1,5 +1,6 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, length, size, split, when
+from pyspark.sql.functions import col, length, size, split, when, regexp_replace
+from regex import *
 
 
 def text_features_df(spark):
@@ -20,6 +21,12 @@ def text_features_df(spark):
             average_line_length
         ]
     """
+    # Replaces formatted text that has already been processed
+    FILLER = ''
+    # Parser helper column
+    COLNAME = 'processed_text'
+    COL =  col(COLNAME)
+
     post_history_df = spark.read.parquet("/user/***REMOVED***/StackOverflow/PostHistory.parquet") \
         .select(['_PostId', '_Text', '_PostHistoryTypeId']) \
         .filter(col('_PostHistoryTypeId') == 2) \
@@ -30,15 +37,23 @@ def text_features_df(spark):
         .filter(col('_PostTypeId') == 1) \
         .drop("_PostTypeId")
 
-    df = post_history_df.join(post_df, post_df['_Id'] == post_history_df['_PostId']) \
-        .withColumn('#characters', length(col('_Text'))) \
-        .withColumn('#punctuation_characters', size(split(col('_Text'), r'[-\[\]{}()*+?.,\\^$|#]')) - 1) \
+    df = post_history_df.join(post_df, post_df['_Id'] == post_history_df['_PostId'])
+
+    # Remove code from the Markdown formatted text
+    df = df.withColumn(COLNAME, regexp_replace(col('_Text'), CODE_BLOCK_RE, FILLER)) \
+        .withColumn(COLNAME, regexp_replace(COL, HTML_BLOCK_RE, FILLER)) \
+        .withColumn(COLNAME, regexp_replace(COL, FENCED_CODE_RE, FILLER)) \
+        .withColumn(COLNAME, regexp_replace(COL, ESCAPE_RE, FILLER)) \
+        .withColumn(COLNAME, regexp_replace(COL, HTML_RE, FILLER))
+
+    df = df.withColumn('#characters', length(COL)) \
+        .withColumn('#punctuation_characters', size(split(COL, r'[-\[\]{}()*+?.,\\^$|#]')) - 1) \
         .withColumn('punctuation_ratio', col('#punctuation_characters') / col('#characters')) \
-        .withColumn('#lines', size(split(col('_Text'), r'\n'))) \
+        .withColumn('#lines', size(split(COL, r'\n'))) \
         .withColumn('average_line_length', col('#characters') / col('#lines')) \
-        .withColumn('#words', size(split(col('_Text'), r'\s'))) \
+        .withColumn('#words', size(split(COL, r'\s'))) \
         .withColumn('average_word_length', col('#characters') / col('#words')) \
-        .drop('_Text', '_PostHistoryTypeId', '_PostId')
+        .drop('_Text', '_PostHistoryTypeId', '_PostId', COLNAME)
     return df
 
 
