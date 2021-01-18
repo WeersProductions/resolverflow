@@ -13,10 +13,17 @@ def text_formatting(spark):
     COL =  col(COLNAME)
     
     # Load and filter
-    df = spark.read.parquet("/user/***REMOVED***/StackOverflow/PostHistory.parquet") \
+    post_history_df = spark.read.parquet("/user/***REMOVED***/StackOverflow/PostHistory.parquet") \
         .select(['_PostId', '_Text', '_PostHistoryTypeId']) \
-        .withColumnRenamed('_PostId', '_Id') \
-        .filter(col('_PostHistoryTypeId') == 2)
+        .filter(col('_PostHistoryTypeId') == 2) \
+        .drop('_PostHistoryTypeId')
+
+    post_df = spark.read.parquet('/user/***REMOVED***/StackOverflow/Posts.parquet') \
+        .select(['_Id', '_PostTypeId']) \
+        .filter(col('_PostTypeId') == 1) \
+        .drop("_PostTypeId")
+
+    df = post_history_df.join(post_df, post_df['_Id'] == post_history_df['_PostId'])
     
     # BLOCK ELEMENTS
     # Count code blocks (1/2)
