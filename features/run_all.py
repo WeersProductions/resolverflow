@@ -7,7 +7,6 @@ from post_time import post_time
 from tag_info import tag_info_df
 from post_answered import post_answered_df
 from post_is_question import post_is_question_df
-from text import text_formatting
 
 # Define what features should be extracted and combined here.
 # If you add a new feature, be sure to import it correctly and pass it to the spark-submit command.
@@ -33,7 +32,7 @@ def run_all(spark):
 
 if __name__ == "__main__":
     """
-    Run this using: spark-submit --master yarn --deploy-mode cluster --conf spark.dynamicAllocation.maxExecutors=10 --name dreamteam --py-files title_features.py,text_features.py,post_time.py,tag_info.py,user_features.py,post_answered.py,post_is_question.py run_all.py --file "StackOverflow/output_stackoverflow.parquet" 2> /dev/null
+    Run this using: spark-submit --master yarn --deploy-mode cluster --conf spark.dynamicAllocation.maxExecutors=10 --conf spark.yarn.maxAppAttempts=1 --name dreamteam --py-files title_features.py,text_features.py,post_time.py,tag_info.py,user_features.py,post_answered.py,post_is_question.py,text.py run_all.py --file "StackOverflow/output_stackoverflow.parquet" 2> /dev/null
 
     --py-files, a list of python files that are imported from this file.
 

@@ -1,11 +1,10 @@
-from pyspark.sql import SparkSession, Window
-from pyspark.sql.functions import col, max
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col
 from pyspark.sql.types import IntegerType
 
-
-INTEGER_FEATURES = ["title_number_of_characters", "number_of_characters", "number_of_punctuation_characters",
-                    "number_of_lines", "number_of_words", "number_of_tags", "posts_amount", "answered_posts_amount"]
-FLOAT_FEATURES = ["punctuation_ratio", "average_line_length", "average_word_length", "user_age", "creation_seconds"]
+INTEGER_FEATURES = ['#title_characters', '#characters', '#punctuation_characters', '#lines', '#words', '#tags',
+                    '#posts', '#answered_posts']
+FLOAT_FEATURES = ['punctuation_ratio', 'average_line_length', 'average_word_length', 'user_age', 'creation_seconds']
 BOOLEAN_FEATURES = []
 
 
@@ -35,22 +34,20 @@ def create_parquet_files(spark_session):
         dataframe
     """
 
-    all_features = spark_session.read.parquet("/user/***REMOVED***/StackOverflow/output_stackoverflow.parquet")
-    all_features = all_features.filter(all_features["is_question"])
+    all_features = spark_session.read.parquet('/user/***REMOVED***/StackOverflow/output_stackoverflow.parquet')
+    all_features = all_features.filter(all_features['is_question'])
 
     all_results = []
 
     for feature in INTEGER_FEATURES + FLOAT_FEATURES:
         original_feature = feature
         if feature in FLOAT_FEATURES:
-            # Bucketize each float feature into "${feature}_bucket_index" columns
+            # Bucketize each float feature into '${feature}_bucket_index' columns
             feature += '_bucket_index'
-            window = Window.partitionBy(original_feature) \
-                .rowsBetween(Window.unboundedPreceding, Window.unboundedFollowing)
-
+            column_max = all_features.agg({original_feature: 'max'}).collect()[0][0]
             all_features = all_features.withColumn(feature,
-                                    (col(original_feature) / max(col(original_feature)).over(window) * 100000)
-                                    .cast(IntegerType()))  # TODO: fine-tune the bucket count
+                                                   ((col(original_feature) / column_max) * 1000)
+                                                   .cast(IntegerType()))  # TODO: fine-tune the bucket count
 
         for resolved in [True, False]:
             new_file = all_features.filter(col('has_answer') == resolved) \
@@ -58,14 +55,14 @@ def create_parquet_files(spark_session):
                 .groupBy(feature).count()
 
             filename = original_feature + '_1' if resolved else original_feature + '_0'
-            new_file.write.mode('overwrite')\
+            new_file.write.mode('overwrite') \
                 .parquet('/user/***REMOVED***/StackOverflow/swashbuckler/output_' + filename + '.parquet')
 
     return all_results
 
 
-if __name__ == "__main__":
-    print("Creating histogram plots")
+if __name__ == '__main__':
+    print('Creating histogram plots')
     spark = SparkSession.builder.getOrCreate()
 
     create_parquet_files(spark)

@@ -11,7 +11,7 @@ def tag_info_df(spark):
     Returns:
         DataFrame: With columns [
             (post)_Id,
-            number_of_tags,
+            #tags,
             contains_language_tag,
             contains_platform_tag
         ]
@@ -141,15 +141,16 @@ def tag_info_df(spark):
                      "flex-machine", "hydra", "keykos"]  # generated from util/platform_list.rb
     platform_list_col = array(*[lit(x) for x in platform_list])
 
-    df = spark.read.parquet("/user/***REMOVED***/StackOverflow/Posthistory.parquet") \
-        .select(["_Id", "_Tags", '_PostHistoryTypeId']) \
+    df = spark.read.parquet("/user/***REMOVED***/StackOverflow/PostHistory.parquet") \
+        .select(["_PostId", "_Text", '_PostHistoryTypeId']) \
         .filter(col("_PostHistoryTypeId") == 3) \
-        .withColumn("_Tags", expr("substring(_Tags, 2, length(_Tags) - 2)")) \
+        .withColumn("_Tags", expr("substring(_Text, 2, length(_Text) - 2)")) \
         .withColumn("_Tags", split(col("_Tags"), "><")) \
-        .withColumn("number_of_tags", when(size("_Tags") < 0, 0).otherwise(size("_Tags"))) \
+        .withColumn("#tags", when(size("_Tags") < 0, 0).otherwise(size("_Tags"))) \
         .withColumn("contains_language_tag", size(array_intersect("_Tags", language_list_col)) > 0) \
         .withColumn("contains_platform_tag", size(array_intersect("_Tags", platform_list_col)) > 0) \
-        .drop("_Tags", "_PostHistoryTypeId")
+        .drop("_Tags", "_PostHistoryTypeId", "_Text") \
+        .withColumnRenamed('_PostId', '_Id')
 
     return df
 

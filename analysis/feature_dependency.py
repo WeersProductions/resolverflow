@@ -2,7 +2,7 @@ from pyspark.sql import SparkSession
 from pyspark.ml.feature import QuantileDiscretizer
 from pyspark.sql.functions import mean, col
 
-feature_list = ["title_number_of_characters", "number_of_characters", "number_of_punctuation_characters", "punctuation_ratio", "number_of_lines", "average_line_length", "number_of_words", "average_word_length", "creation_seconds", "number_of_tags", "user_age", "posts_amount", "answered_posts_amount"]
+feature_list = ["#title_characters", "#characters", "#punctuation_characters", "punctuation_ratio", "#lines", "average_line_length", "#words", "average_word_length", "creation_seconds", "#tags", "user_age", "posts_amount", "answered_posts_amount"]
 
 
 def do_quantile_discretizer(input_data, result_data, column, prefix="buckets_", num_buckets=100):
@@ -15,7 +15,7 @@ def create_scatter_data(spark):
     """
     Example result:
     +---------+--------------------------+--------------------+----------------------------------+--------------------+---------------+-------------------+------------------+-------------------+--------------------+--------------+--------------------+------------------+---------------------+
-    |bucket_id|title_number_of_characters|number_of_characters|number_of_punctuation_characters| punctuation_ratio|number_of_lines|average_line_length|   number_of_words|average_word_length|    creation_seconds|number_of_tags|            user_age|      posts_amount|answered_posts_amount|
+    |bucket_id|#title_characters         |#characters         |#punctuation_characters           | punctuation_ratio  |#lines         |average_line_length|   #words         |average_word_length|    creation_seconds|#tags         |            user_age|      posts_amount|answered_posts_amount|
     +---------+--------------------------+--------------------+----------------------------------+--------------------+---------------+-------------------+------------------+-------------------+--------------------+--------------+--------------------+------------------+---------------------+
     |      8.0|                      29.0|                27.0|                              null|0.015393144123488375|           null|               27.0|              10.0|  4.818926516237462| 1.310644258174288E9|          null|   1845.465446527012|               7.0|                  7.0|
     |     67.0|        130.72050898203594|                null|                              null|                null|           null|               null|              null|  7.003953447563475|1.4848171300671287E9|          null| 6.270216069961038E7|              null|                 null|
