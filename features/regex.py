@@ -1,34 +1,21 @@
 import re
 
-# Patterns based on two sources. Many alterations have been made.
+# Patterns loosely based on two sources. Every pattern is either fully created by us or made through much adaptation.
 # - Copyright 2007, 2008 The Python Markdown Project (v. 1.7 and later) Copyright 2004, 2005, 2006 Yuri Takhteyev (v. 0.2-1.6b) Copyright 2004 Manfred Stienstra (the original version)
 # - Marko. A markdown parser with high extensibility. Author: Frost Ming <mianghong@gmail.com>
 
-
 # === BLOCK ELEMENTS ==================================================
-# Precedence: you start with the highest number = highest priority
+# Ordered by precedence: you start with the highest number = highest priority
 
-    # 1
-    # Paragraph
-    # 2
-    # 3
-    # 4
-    # CodeBlock
-    # 5
-    # HTMLBlock
-    # SetextHeading
-    # ListItem
-    # LinkRefDef
-    # BlankLine
-    # Document = virtual
-    # 6
-    # Quote
-    # Heading
-    # List
-    # 7
-    # FencedCode
-    # 8
-    # ThematicBreak
+CODE_BLOCK_RE = r'(?<=\n) {4}.*\n?' # TODO does not detect code block at start of string
+HTML_BLOCK_RE = r' {0,3}(<[sS][cC][rR][iI][pP][tT]>.*</[sS][cC][rR][iI][pP][tT]>|<[pP][rR][eE]>.*</[pP][rR][eE]>|<[sS][tT][yY][lL][eE]>.*</[sS][tT][yY][lL][eE]>)'
+SETEXT_HEADING_RE = r'(?<=\n).*?\n[=-]+[ ]*(\n|(?!.))'
+REFERENCE_LIST_RE = r'(?<=\n) {0,3}(\[(?!\s*\])(?:\\\\|\\[\[\]]|[^\[\]])+\]):\s*(<(?:\\.|[^\n\\<>])*>|[^<\s]\S*)\s*(?:(?<=\s)(\"(?:\\\\|\\\"|[^\"])*\"|\'(?:\\\\|\\\'|[^\'])*\'|\((?:\\\\|\\\)|[^\(\)])*\)))?[^\n\S]*\n?'
+QUOTE_RE = r'(?<=\n) {0,3}>( (.|\n.)+|(?!.))(\n\n)?' #r'(?<=\n) {0,3}>( (.|\n.)+)?(\n\n)?' #r'(?<=\n) {0,3}> ?(.|\n.)*(\n\n)?' #r'(?<=\n) {0,3}>[^\n\S]?(.|\n.)*(\n\n)?'# TODO does not detect quote at start of string
+HEADING_RE = r'(?<=\n) {0,3}(#{1,6})((?=\s)[^\n]*?|[^\n\S]*)(?:(?<=\s)(?<!\\)#+)?[^\n\S]*\n?' # TODO does not detect heading at start of string
+LIST_RE = r'(?<=\n) {0,3}(\d{1,9}[.)]|[*\-+])[ \t\n\r\f][^\n\s]*\n?' # TODO does not detect list items at start of string
+FENCED_CODE_RE = r' {0,3}(`{3,}|~{3,})[^\n\S]*((.|\n)*?)( {0,3})(`{3,}|~{3,})'
+THEME_BREAK_RE = r'(?<=\n) {0,3}([-_*][^\n\S]*){3,}\n?' # TODO does not detect theme breaks at start of string
 
 # === INLINE ELEMENTS ==================================================
 
@@ -53,12 +40,14 @@ CODESPAN_RE = r'(?:(?<!\\)((?:\\{2})+)(?=`+)|(?<!\\)(`+)(.+?)(?<!`)\2(?!`))'
 ESCAPE_RE = r'\\(.)'
 
 # References 1/2
+# Note references are the suggested method for adding links and images for StackOverflow posts.
+# If a reference doesn't point to anything, StackOverflow does not recognise nor format it.
 #   [Google][3]
-REFERENCE_RE = re.compile(LINK_START_RE + REFERENCE_END_RE, re.DOTALL | re.UNICODE)
+REFERENCE_RE = LINK_START_RE + REFERENCE_END_RE
 
 # Links 1/2
 #   [text](url) or [text](<url>) or [text](url "title")
-LINK_RE = re.compile(LINK_START_RE + LINK_END_RE, re.DOTALL | re.UNICODE)
+LINK_RE = LINK_START_RE + LINK_END_RE
 
 # Images
 #   ![alttxt](http://x.com/) or ![alttxt](<http://x.com/>)
@@ -66,8 +55,8 @@ IMAGE_LINK_RE = IMAGE_START_RE + LINK_END_RE # image link
 #   ![alt text][2]
 IMAGE_REFERENCE_RE = IMAGE_START_RE + REFERENCE_END_RE  # image ref
 #   ![ref]
-SHORT_IMAGE_REFERENCE_RE = IMAGE_START_RE # short image ref
-INLINE_IMAGE_RE = '(' + IMAGE_LINK_RE + ')|(' + IMAGE_REFERENCE_RE + ')|(' + SHORT_IMAGE_REFERENCE_RE + ')'
+IMAGE_SHORT_REFERENCE_RE = IMAGE_START_RE # short image ref
+INLINE_IMAGE_RE = '(' + IMAGE_LINK_RE + ')|(' + IMAGE_REFERENCE_RE + ')|(' + IMAGE_SHORT_REFERENCE_RE + ')'
 
 # References 2/2
 #   [Google]
@@ -95,23 +84,23 @@ NOT_STRONG_RE = r'((^|\s)(\*|_)(\s|$))' #TODO check if these need attention, it 
 
 # Asterisks
 #   ***strongem*** or ***em*strong**
-EM_STRONG_RE = re.compile(r'(\*)\1{2}(.+?)\1(.*?)\1{2}', re.DOTALL | re.UNICODE)
+EM_STRONG_RE = r'(\*)\1{2}(.+?)\1(.*?)\1{2}'
 #   ***strong**em*
-STRONG_EM_RE = re.compile(r'(\*)\1{2}(.+?)\1{2}(.*?)\1', re.DOTALL | re.UNICODE)
+STRONG_EM_RE = r'(\*)\1{2}(.+?)\1{2}(.*?)\1'
 #   **strong*em***
-STRONG_EM3_RE = re.compile(r'(\*)\1(?!\1)([^*]+?)\1(?!\1)(.+?)\1{3}', re.DOTALL | re.UNICODE)
+STRONG_EM3_RE = r'(\*)\1(?!\1)([^*]+?)\1(?!\1)(.+?)\1{3}'
 #   **strong**
-STRONG_RE = re.compile(r'(\*{2})(.+?)\1', re.DOTALL | re.UNICODE)
+STRONG_RE = r'(\*{2})(.+?)\1'
 #   *emphasis*
-EMPHASIS_RE = re.compile(r'(\*)([^\*]+)\1', re.DOTALL | re.UNICODE)
+EMPHASIS_RE = r'(\*)([^\*]+)\1'
 
 # Underscores
 #   ___strongem___ or ___em_strong__
-EM_STRONG2_RE = re.compile(r'(_{3})(.+?)\1', re.DOTALL | re.UNICODE)
+EM_STRONG2_RE = r'(_{3})(.+?)\1'
 #   __strong__
-STRONG2_RE = re.compile(r'(_{2})(.+?)\1', re.DOTALL | re.UNICODE)
+STRONG2_RE = r'(_{2})(.+?)\1'
 #   _emphasis_
-EMPHASIS2_RE = re.compile(r'(_)([^_]+)\1', re.DOTALL | re.UNICODE)
+EMPHASIS2_RE = r'(_)([^_]+)\1'
 
 
 
