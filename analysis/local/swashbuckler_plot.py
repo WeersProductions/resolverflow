@@ -6,19 +6,17 @@ from scipy import stats
 from tqdm import tqdm
 
 ABSOLUTE = True
-STACKED = True
-PERCENTAGES = True
+STACKED = False
+PERCENTAGES = False
 
 if __name__ == "__main__":
-    print("Creating plots")
-
     pickle_path = '/Users/kyle/Projects/PycharmProjects/MBDProject/pickles/'
     for pickle_file in tqdm(os.listdir(pickle_path)):
 
         # Resolved files only, we will load unresolved a few lines later (manually)
         # TODO: remove comment on next line
         if pickle_file[-8] == '1':  # and pickle_file != 'output_#characters_1.pickle':
-            print('Plotting ' + pickle_file[:-9] + '...')
+            # print('Plotting ' + pickle_file[:-9] + '...')
 
             resolved_data_points = pickle.load(open(pickle_path + pickle_file, "rb"))
             # all_column_names = resolved_data_points['column_names']
@@ -77,8 +75,9 @@ if __name__ == "__main__":
                                          '#punctuation_characters']:
                     plt.xscale('log')
 
-                plt.savefig('./swashplots/absolutes' + pickle_file[7:-9] + '.png', dpi=300)
+                plt.savefig('./swashplots/absolutes/' + pickle_file[7:-9] + '.png', dpi=300)
                 # plt.show()
+                plt.cla()
                 plt.clf()
 
             if STACKED:
@@ -90,17 +89,9 @@ if __name__ == "__main__":
                 plt.title(pickle_file[:-9])
                 plt.legend((resolved_bar[0], unresolved_bar[1]), ('resolved', 'unresolved'))
 
-                # The #tags graph looks comically bad with log scales,
-                # you might actually want to try it just to see for yourself...
-                if not pickle_file == 'output_#tags_1.pickle':
-                    plt.yscale('log')
-
-                if pickle_file[7:-9] in ['#lines', '#words', 'average_line_length', 'average_word_length',
-                                         '#punctuation_characters']:
-                    plt.xscale('log')
-
-                plt.savefig('./swashplots/stacked' + pickle_file[7:-9] + '.png', dpi=300)
+                plt.savefig('./swashplots/stacked/' + pickle_file[7:-9] + '.png', dpi=300)
                 # plt.show()
+                plt.cla()
                 plt.clf()
 
             if PERCENTAGES:
@@ -118,7 +109,7 @@ if __name__ == "__main__":
                 plt.title(pickle_file[7:-9])
                 plt.legend((resolved_bar[0], unresolved_bar[0]), ('resolved', 'unresolved'))
 
-                # plt.savefig('./swashplots/percentages' + pickle_file[7:-9] + '.png', dpi=300)
-                plt.show()
-
-                # break
+                plt.savefig('./swashplots/percentages/' + pickle_file[7:-9] + '.png', dpi=300)
+                # plt.show()
+                plt.cla()
+                plt.clf()
