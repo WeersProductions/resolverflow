@@ -10,8 +10,8 @@ from post_is_question import post_is_question_df
 
 # Define what features should be extracted and combined here.
 # If you add a new feature, be sure to import it correctly and pass it to the spark-submit command.
-all_features = [title_features_df, post_answered_df, text_features_df, post_time, tag_info_df, user_age_df, user_question_amount, post_is_question_df]
-# all_features = [text_formatting]
+all_features = [title_features_df, post_answered_df, text_features_df, post_time, tag_info_df, user_age_df, user_question_amount, post_is_question_df, text_formatting]
+
 
 def get_feature_name(feature):
     return feature.__name__
@@ -32,7 +32,7 @@ def run_all(spark):
 
 if __name__ == "__main__":
     """
-    Run this using: spark-submit --master yarn --deploy-mode cluster --conf spark.dynamicAllocation.maxExecutors=10 --conf spark.yarn.maxAppAttempts=1 --name dreamteam --py-files title_features.py,text_features.py,post_time.py,tag_info.py,user_features.py,post_answered.py,post_is_question.py,text.py run_all.py --file "StackOverflow/output_stackoverflow.parquet" 2> /dev/null
+    Run this using: spark-submit --master yarn --deploy-mode cluster --conf spark.dynamicAllocation.maxExecutors=10 --conf spark.yarn.maxAppAttempts=1 --name dreamteam --py-files title_features.py,text_features.py,post_time.py,tag_info.py,user_features.py,post_answered.py,post_is_question.py,text.py,regex.py run_all.py --file "StackOverflow/output_stackoverflow.parquet" 2> /dev/null
 
     --py-files, a list of python files that are imported from this file.
 
