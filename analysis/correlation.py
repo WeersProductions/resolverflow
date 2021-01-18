@@ -14,9 +14,11 @@ def calc_correlation_label(spark, feature_columns, label_column):
   feature_data = load_feature_data(spark)
   for feature_column in feature_columns:
     columns = [label_column, feature_column]
-    corr = calc_correlation(columns, feature_data.select(columns).dropna())
+    df = feature_data.select(columns).dropna()
+    sample_count = df.count()
+    corr = calc_correlation(columns, df)
     corr_value = corr.toArray()[1][0].item() # .item() is used to go to a python native type instead of numpy.
-    print("Correlation between ", label_column, " and ", feature_column, ": ", corr_value)
+    print("Correlation between ", label_column, " and ", feature_column, ": ", corr_value, "; sample count: ", sample_count)
     result.append([label_column, feature_column, corr_value])
 
   rdd = spark.sparkContext.parallelize(result)
