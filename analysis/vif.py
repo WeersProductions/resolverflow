@@ -3,6 +3,7 @@ Based on: https://github.com/BhaskarBiswas/PySpark-Codes/blob/master/Automated_V
 """
 from pyspark.sql import SparkSession
 
+from pyspark.sql.functions import col
 from pyspark.ml.feature import VectorAssembler
 from pyspark.ml.regression import LinearRegression
 from pyspark.ml.evaluation import RegressionEvaluator
@@ -12,18 +13,18 @@ def calc_feature_pair_vifs(spark):
     feature_data = spark.read.parquet("/user/***REMOVED***/StackOverflow/output_stackoverflow.parquet")
     feature_data = feature_data.filter(feature_data["is_question"])
     # Drop columns that are not a feature
-    feature_data = feature_data.drop("_Id", "_Text", "is_question", "is_answered")
+    # feature_data = feature_data.drop("_Id", "_Text", "is_question", "is_answered")
     # Drop columns that don't correlate with our label
-    feature_data = feature_data.drop("#lines")
+    # feature_data = feature_data.drop("#lines")
 
     # For testing
-    feature_data = feature_data.select("post_amount", "#answered_posts", "title_contains_questionmark", "#title_characters")
+    feature_data = feature_data.select("#characters", "#punctuation_characters", "punctuation_ratio", "#lines", '#words')
 
     for i in range(len(feature_data.columns) - 1):
         for j in range(i + 1, len(feature_data.columns)):
             # df = feature_data.rdd.map(lambda x: [Vectors.dense(x[i]), x[j]]).toDF(['feature', 'label'])
-            df = feature_data.select((feature_data.columns[i]).alias('raw_feature'), (feature_data.columns[j]).alias('label'))
-            assembler = VectorAssembler(inputcols=['raw_feature'], outputCol='feature')
+            df = feature_data.select(col(feature_data.columns[i]).alias('raw_feature'), col(feature_data.columns[j]).alias('label'))
+            assembler = VectorAssembler(inputCols=['raw_feature'], outputCol='feature', handleInvalid='skip')
             df = assembler.transform(df)
             linear_regression = LinearRegression(featuresCol='feature', labelCol='label')
             linear_regression_model = linear_regression.fit(df)
