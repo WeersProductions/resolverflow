@@ -22,13 +22,13 @@ To add a feature, create a new file and add your function definition. It should 
 
 ### Analysis
 Responsible for analyzing the features after feature collection has been done. This reads from a `output_stackoverflow.parquet` file which contain the extracted features.
-- correlation.py
+- correlation.py <br>
 Calculates the correlation between a feature and the label.
-- decision_tree.py
+- decision_tree.py <br>
 Contains code to train and evaluate a decision tree (whether as classifier or regressor). Features that should be used can be selected.
-- swashbuckler.py
+- swashbuckler.py <br>
 Bucketizes the input to be used for graphs.
-- vif.py
+- vif.py <br>
 Used to remove features that have a too high VIF. Calculates the vif of pairs of features and also calculates the VIF while removing a single feature from all features.
 
 ### Analaysis/local
