@@ -7,6 +7,7 @@ from post_time import post_time
 from tag_info import tag_info_df
 from post_answered import post_answered_df
 from post_is_question import post_is_question_df
+from text import text_formatting
 
 # Define what features should be extracted and combined here.
 # If you add a new feature, be sure to import it correctly and pass it to the spark-submit command.

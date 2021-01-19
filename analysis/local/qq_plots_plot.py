@@ -108,8 +108,6 @@ def qq_folder(folder, unresolved_suffix='_0', resolved_suffix='_1', file_extensi
         unresolved_pickle = pickle.load(open(base_path + unresolved_suffix + file_extension, "rb"), encoding='latin1')
         unresolved_points = unresolved_pickle["data_points"]
         resolved_points = resolved_pickle["data_points"]
-        # unresolved_points = unresolved_points[unresolved_points[:,0].argsort()]
-        # resolved_points = resolved_points[resolved_points[:,0].argsort()]
         unresolved_dict = {a: b for a,b in unresolved_points}
         resolved_dict = {a: b for a,b in resolved_points}
 
