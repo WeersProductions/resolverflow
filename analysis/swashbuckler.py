@@ -8,21 +8,6 @@ FLOAT_FEATURES = ['punctuation_ratio', 'average_line_length', 'average_word_leng
 BOOLEAN_FEATURES = []
 
 
-def mass_apply(dataframe, **functions):
-    """
-    Takes a dataframe of a single column, and creates a new column for every function given
-
-    Args:
-        dataframe: single-column dataframe to be processed
-        **functions: all functions that are to be applied, with as key the column to be applied on
-
-    Returns:
-        dataframe with one extra column for every function that was given as input with its results
-    """
-
-    return dataframe.agg(**functions)
-
-
 def create_parquet_files(spark_session):
     """
     Create a histogram for each feature
@@ -33,7 +18,6 @@ def create_parquet_files(spark_session):
     Returns:
         dataframe
     """
-
     all_features = spark_session.read.parquet('/user/***REMOVED***/StackOverflow/output_stackoverflow.parquet')
     all_features = all_features.filter(all_features['is_question'])
 
@@ -46,8 +30,7 @@ def create_parquet_files(spark_session):
             feature += '_bucket_index'
             column_max = all_features.agg({original_feature: 'max'}).collect()[0][0]
             all_features = all_features.withColumn(feature,
-                                                   ((col(original_feature) / column_max) * 1000)
-                                                   .cast(IntegerType()))  # TODO: fine-tune the bucket count
+                                                   ((col(original_feature) / column_max) * 1000).cast(IntegerType()))
 
         for resolved in [True, False]:
             new_file = all_features.filter(col('has_answer') == resolved) \
@@ -64,5 +47,4 @@ def create_parquet_files(spark_session):
 if __name__ == '__main__':
     print('Creating histogram plots')
     spark = SparkSession.builder.getOrCreate()
-
     create_parquet_files(spark)

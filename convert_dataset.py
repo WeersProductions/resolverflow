@@ -6,11 +6,12 @@ apply_filters = True
 
 spark = SparkSession.builder.getOrCreate()
 
-
 """
     filter: if filter is provided, this is executed before writing to parquet.
     Example: Convert("/user/***REMOVED***/StackOverflow/Posts.xml", "/user/***REMOVED***/StackOverflow/Posts.parquet", "row", col("_PostTypeId") == 1)
 """
+
+
 def Convert(source, destination, row_element, filter):
     df = spark.read.format("xml").options(rowTag=row_element).load(source)
     if apply_filters and filter != None:

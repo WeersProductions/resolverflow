@@ -25,7 +25,7 @@ def text_features_df(spark):
     FILLER = ''
     # Parser helper column
     COLNAME = 'processed_text'
-    COL =  col(COLNAME)
+    COL = col(COLNAME)
 
     post_history_df = spark.read.parquet("/user/***REMOVED***/StackOverflow/PostHistory.parquet") \
         .select(['_PostId', '_Text', '_PostHistoryTypeId']) \

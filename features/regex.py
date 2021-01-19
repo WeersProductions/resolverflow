@@ -7,15 +7,15 @@ import re
 # === BLOCK ELEMENTS ==================================================
 # Ordered by precedence: you start with the highest number = highest priority
 
-CODE_BLOCK_RE = r'(?<=\n) {4}.*\n?' # TODO does not detect code block at start of string
+CODE_BLOCK_RE = r'(?<=\n) {4}.*\n?'  # TODO does not detect code block at start of string
 HTML_BLOCK_RE = r' {0,3}(<[sS][cC][rR][iI][pP][tT]>.*</[sS][cC][rR][iI][pP][tT]>|<[pP][rR][eE]>.*</[pP][rR][eE]>|<[sS][tT][yY][lL][eE]>.*</[sS][tT][yY][lL][eE]>)'
 SETEXT_HEADING_RE = r'(?<=\n).*?\n[=-]+[ ]*(\n|(?!.))'
 REFERENCE_LIST_RE = r'(?<=\n) {0,3}(\[(?!\s*\])(?:\\\\|\\[\[\]]|[^\[\]])+\]):\s*(<(?:\\.|[^\n\\<>])*>|[^<\s]\S*)\s*(?:(?<=\s)(\"(?:\\\\|\\\"|[^\"])*\"|\'(?:\\\\|\\\'|[^\'])*\'|\((?:\\\\|\\\)|[^\(\)])*\)))?[^\n\S]*\n?'
-QUOTE_RE = r'(?<=\n) {0,3}>( (.|\n.)+|(?!.))(\n\n)?' #r'(?<=\n) {0,3}>( (.|\n.)+)?(\n\n)?' #r'(?<=\n) {0,3}> ?(.|\n.)*(\n\n)?' #r'(?<=\n) {0,3}>[^\n\S]?(.|\n.)*(\n\n)?'# TODO does not detect quote at start of string
-HEADING_RE = r'(?<=\n) {0,3}(#{1,6})((?=\s)[^\n]*?|[^\n\S]*)(?:(?<=\s)(?<!\\)#+)?[^\n\S]*\n?' # TODO does not detect heading at start of string
-LIST_RE = r'(?<=\n) {0,3}(\d{1,9}[.)]|[*\-+])[ \t\n\r\f][^\n\s]*\n?' # TODO does not detect list items at start of string
+QUOTE_RE = r'(?<=\n) {0,3}>( (.|\n.)+|(?!.))(\n\n)?'  # r'(?<=\n) {0,3}>( (.|\n.)+)?(\n\n)?' #r'(?<=\n) {0,3}> ?(.|\n.)*(\n\n)?' #r'(?<=\n) {0,3}>[^\n\S]?(.|\n.)*(\n\n)?'# TODO does not detect quote at start of string
+HEADING_RE = r'(?<=\n) {0,3}(#{1,6})((?=\s)[^\n]*?|[^\n\S]*)(?:(?<=\s)(?<!\\)#+)?[^\n\S]*\n?'  # TODO does not detect heading at start of string
+LIST_RE = r'(?<=\n) {0,3}(\d{1,9}[.)]|[*\-+])[ \t\n\r\f][^\n\s]*\n?'  # TODO does not detect list items at start of string
 FENCED_CODE_RE = r' {0,3}(`{3,}|~{3,})[^\n\S]*((.|\n)*?)( {0,3})(`{3,}|~{3,})'
-THEME_BREAK_RE = r'(?<=\n) {0,3}([-_*][^\n\S]*){3,}\n?' # TODO does not detect theme breaks at start of string
+THEME_BREAK_RE = r'(?<=\n) {0,3}([-_*][^\n\S]*){3,}\n?'  # TODO does not detect theme breaks at start of string
 
 # === INLINE ELEMENTS ==================================================
 
@@ -51,16 +51,16 @@ LINK_RE = LINK_START_RE + LINK_END_RE
 
 # Images
 #   ![alttxt](http://x.com/) or ![alttxt](<http://x.com/>)
-IMAGE_LINK_RE = IMAGE_START_RE + LINK_END_RE # image link
+IMAGE_LINK_RE = IMAGE_START_RE + LINK_END_RE  # image link
 #   ![alt text][2]
 IMAGE_REFERENCE_RE = IMAGE_START_RE + REFERENCE_END_RE  # image ref
 #   ![ref]
-IMAGE_SHORT_REFERENCE_RE = IMAGE_START_RE # short image ref
+IMAGE_SHORT_REFERENCE_RE = IMAGE_START_RE  # short image ref
 INLINE_IMAGE_RE = '(' + IMAGE_LINK_RE + ')|(' + IMAGE_REFERENCE_RE + ')|(' + IMAGE_SHORT_REFERENCE_RE + ')'
 
 # References 2/2
 #   [Google]
-SHORT_REFERENCE_RE = LINK_START_RE # short ref
+SHORT_REFERENCE_RE = LINK_START_RE  # short ref
 
 # Links 2/2
 #   <http://www.123.com>
@@ -76,11 +76,11 @@ LINE_BREAK_RE = r'  \n'
 
 # Direct HTML 
 #   <...>
-HTML_RE = r'(<([a-zA-Z/][^<>]*|!--(?:(?!<!--|-->).)*--)>)' #TODO this now finds start tags, end tags, and self-closing tags. Change that a start+end tag pair count as 1.
-ENTITY_RE = r'(&(?:\#[0-9]+|\#x[0-9a-fA-F]+|[a-zA-Z0-9]+);)' # ampersands in HTML
+HTML_RE = r'(<([a-zA-Z/][^<>]*|!--(?:(?!<!--|-->).)*--)>)'  # TODO this now finds start tags, end tags, and self-closing tags. Change that a start+end tag pair count as 1.
+ENTITY_RE = r'(&(?:\#[0-9]+|\#x[0-9a-fA-F]+|[a-zA-Z0-9]+);)'  # ampersands in HTML
 
 # Stand-alone * or _
-NOT_STRONG_RE = r'((^|\s)(\*|_)(\s|$))' #TODO check if these need attention, it seems they are just ignored
+NOT_STRONG_RE = r'((^|\s)(\*|_)(\s|$))'  # TODO check if these need attention, it seems they are just ignored
 
 # Asterisks
 #   ***strongem*** or ***em*strong**
@@ -101,6 +101,3 @@ EM_STRONG2_RE = r'(_{3})(.+?)\1'
 STRONG2_RE = r'(_{2})(.+?)\1'
 #   _emphasis_
 EMPHASIS2_RE = r'(_)([^_]+)\1'
-
-
-

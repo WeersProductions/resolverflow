@@ -14,13 +14,15 @@ class EvaluationResult:
     """
     Contains information about an evaluator that has ran and model.
     """
+
     def __init__(self, test_result, model, model_debug_string):
-        self.test_result = test_result # (test_name, test_value)
+        self.test_result = test_result  # (test_name, test_value)
         self.model = model
         self.model_debug_string = model_debug_string
 
     def __str__(self):
-     return "test_result: %s = %g \n model_summary: %s \n full_model: %s" % (self.test_result[0], self.test_result[1], self.model, self.model_debug_string)
+        return "test_result: %s = %g \n model_summary: %s \n full_model: %s" % (
+        self.test_result[0], self.test_result[1], self.model, self.model_debug_string)
 
 
 class ModelResult:
@@ -28,9 +30,9 @@ class ModelResult:
     Contains all information about a model.
     Data can be added (like feature_importance) and will be printed properly when converting to string.
     """
+
     def __init__(self, model_name):
         self.model_name = model_name
-
 
     def add_evaluation(self, evaluation):
         """
@@ -38,14 +40,11 @@ class ModelResult:
         """
         self.evaluation = evaluation
 
-
     def add_feature_importance(self, feature_importance):
         self.feature_importance = feature_importance
 
-
     def add_prediction_results(self, prediction_results):
         self.prediction_results = prediction_results
-
 
     def __str__(self):
         evaluation_string = "no evaluation"
@@ -57,7 +56,8 @@ class ModelResult:
         prediction_results_string = "no predictions"
         if self.prediction_results is not None:
             prediction_results_string = str(self.prediction_results)
-        return "-- %s -- \n Evaluation: %s \n Feature importance: %s \n Prediction results: %s" % (self.model_name, evaluation_string, feature_importance_string, prediction_results_string)
+        return "-- %s -- \n Evaluation: %s \n Feature importance: %s \n Prediction results: %s" % (
+        self.model_name, evaluation_string, feature_importance_string, prediction_results_string)
 
 
 def load_feature_data(spark):
@@ -76,7 +76,7 @@ def ExtractFeatureImp(featureImp, dataset, featuresCol):
         list_extract = list_extract + dataset.schema[featuresCol].metadata["ml_attr"]["attrs"][i]
     result = []
     for index, feature in enumerate(list_extract):
-      result.append((feature, featureImp[index]))
+        result.append((feature, featureImp[index]))
     result.sort(key=lambda x: x[1])
     return result
 
@@ -107,7 +107,7 @@ def get_pipeline(data, label_col, vector_col, model):
     labelIndexer = StringIndexer(inputCol=label_col, outputCol="indexedLabel").fit(data)
     featureIndexer = VectorIndexer(inputCol=vector_col, outputCol="indexedFeatures", maxCategories=4).fit(data)
     # Convert indexed labels back to original labels.
-    labelConverter = IndexToString(inputCol="prediction", outputCol="predictedLabel",labels=labelIndexer.labels)
+    labelConverter = IndexToString(inputCol="prediction", outputCol="predictedLabel", labels=labelIndexer.labels)
 
     return ([labelIndexer, featureIndexer, model, labelConverter], 2)
 
@@ -148,7 +148,8 @@ def decision_tree_classifier(spark, original_label_col, feature_col_names):
     vector_col = "features"
 
     dt = DecisionTreeClassifier(labelCol="indexedLabel", featuresCol="indexedFeatures")
-    evaluator = MulticlassClassificationEvaluator(labelCol="indexedLabel", predictionCol="prediction", metricName="accuracy")
+    evaluator = MulticlassClassificationEvaluator(labelCol="indexedLabel", predictionCol="prediction",
+                                                  metricName="accuracy")
     return run_model(spark, original_label_col, label_col, vector_col, feature_col_names, dt, evaluator)
 
 
@@ -185,7 +186,8 @@ if __name__ == "__main__":
     spark = SparkSession.builder.getOrCreate()
 
     # Train a model and print feature importance.
-    features = ["title_contains_questionmark", "#title_characters", "creation_seconds", "#tags", "contains_language_tag", "contains_platform_tag", "user_age", "posts_amount", "answered_posts_amount"]
+    features = ["title_contains_questionmark", "#title_characters", "creation_seconds", "#tags",
+                "contains_language_tag", "contains_platform_tag", "user_age", "posts_amount", "answered_posts_amount"]
     label = "has_answer"
 
     regressor_result = decision_tree_regressor(spark, label, features)

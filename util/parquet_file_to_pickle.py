@@ -3,7 +3,6 @@ from sys import argv
 from pyspark.sql import SparkSession
 import numpy as np
 
-
 if __name__ == "__main__":
     """
     Run using: spark-submit --name dreamteam_pickle util/parquet_file_to_pickle.py "StackOverflow/scatter_points.parquet" 2> /dev/null
@@ -18,7 +17,7 @@ if __name__ == "__main__":
         if len(argv) > 2:
             target = argv[2]
         else:
-            target = argv[1][:-8] + ".pickle" # Remove .parquet add .pickle
+            target = argv[1][:-8] + ".pickle"  # Remove .parquet add .pickle
 
         all_data = np.array(df.collect())
         pickle_data = {

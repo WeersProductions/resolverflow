@@ -2,11 +2,13 @@ from pyspark.sql import SparkSession
 from pyspark.ml.feature import QuantileDiscretizer
 from pyspark.sql.functions import mean, col
 
-feature_list = ["#title_characters", "#characters", "#punctuation_characters", "punctuation_ratio", "#lines", "average_line_length", "#words", "average_word_length", "creation_seconds", "#tags", "user_age", "posts_amount", "answered_posts_amount"]
+feature_list = ["#title_characters", "#characters", "#punctuation_characters", "punctuation_ratio", "#lines",
+                "average_line_length", "#words", "average_word_length", "creation_seconds", "#tags", "user_age",
+                "posts_amount", "answered_posts_amount"]
 
 
 def do_quantile_discretizer(input_data, result_data, column, prefix="buckets_", num_buckets=100):
-    discretizer = QuantileDiscretizer(inputCol=column, outputCol=prefix+column, numBuckets=num_buckets)
+    discretizer = QuantileDiscretizer(inputCol=column, outputCol=prefix + column, numBuckets=num_buckets)
     fittedBucketer = discretizer.fit(input_data)
     return fittedBucketer.transform(result_data)
 

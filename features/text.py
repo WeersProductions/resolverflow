@@ -10,8 +10,8 @@ def text_formatting(spark):
     FILLER = 'x'
     # Parser helper column
     COLNAME = 'processed_text'
-    COL =  col(COLNAME)
-    
+    COL = col(COLNAME)
+
     # Load and filter
     post_history_df = spark.read.parquet("/user/***REMOVED***/StackOverflow/PostHistory.parquet") \
         .select(['_PostId', '_Text', '_PostHistoryTypeId']) \
@@ -24,7 +24,7 @@ def text_formatting(spark):
         .drop("_PostTypeId")
 
     df = post_history_df.join(post_df, post_df['_Id'] == post_history_df['_PostId'])
-    
+
     # BLOCK ELEMENTS
     # Count code blocks (1/2)
     df = df.withColumn(COLNAME, split(col('_Text'), CODE_BLOCK_RE)) \
@@ -58,7 +58,7 @@ def text_formatting(spark):
     df = df.withColumn(COLNAME, split(COL, THEME_BREAK_RE)) \
         .withColumn('#themebreaks', size(COL) - 1) \
         .withColumn(COLNAME, array_join(COL, FILLER))
-    
+
     # INLINE ELEMENTS
     # Count codespans
     df = df.withColumn(COLNAME, split(COL, CODESPAN_RE)) \
@@ -123,7 +123,7 @@ def text_formatting(spark):
     df = df.withColumn(COLNAME, split(COL, EMPHASIS2_RE)) \
         .withColumn('#emphasis', size(COL) - 1 + col('#emphasis')) \
         .withColumn(COLNAME, array_join(COL, FILLER))
-    
+
     # Remove parser helper column
     df = df.drop('_Text', '_PostHistoryTypeId', '_PostId', COLNAME)
     return df
@@ -132,8 +132,10 @@ def text_formatting(spark):
 def has_underline():
     return False
 
+
 def has_strike():
     return False
+
 
 def has_greetings():
     return False

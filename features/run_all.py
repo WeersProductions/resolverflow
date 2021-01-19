@@ -11,7 +11,8 @@ from text import text_formatting
 
 # Define what features should be extracted and combined here.
 # If you add a new feature, be sure to import it correctly and pass it to the spark-submit command.
-all_features = [title_features_df, post_answered_df, text_features_df, post_time, tag_info_df, user_age_df, user_question_amount, post_is_question_df, text_formatting]
+all_features = [title_features_df, post_answered_df, text_features_df, post_time, tag_info_df, user_age_df,
+                user_question_amount, post_is_question_df, text_formatting]
 
 
 def get_feature_name(feature):
@@ -46,7 +47,7 @@ if __name__ == "__main__":
     complete_df = run_all(spark)
     if complete_df is None:
         print("No features extracted.")
-    elif len(sys.argv) > 2 and sys.argv[1]=='--file':
+    elif len(sys.argv) > 2 and sys.argv[1] == '--file':
         complete_df.write.mode("overwrite").parquet(sys.argv[2])
     else:
         complete_df.show()
