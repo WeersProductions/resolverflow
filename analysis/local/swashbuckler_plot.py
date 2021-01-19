@@ -26,9 +26,9 @@ if __name__ == "__main__":
             resolved_data_points = pickle.load(open(pickle_path + pickle_file, "rb"))
             resolved_counts = resolved_data_points['data_points']
 
+            # counts: [(index), (value)]
             unresolved_data_points = pickle.load(open(pickle_path + pickle_file[:-8] + '0.pickle', "rb"))
             unresolved_counts = unresolved_data_points['data_points']
-            # counts: [[indices], [values]]
 
             # Change data format into {index: count} for both resolved and unresolved
             resolved_dict = {a: b for a, b in resolved_counts}
@@ -36,7 +36,7 @@ if __name__ == "__main__":
 
             # Create a unique list of all data points, to be used as x-ticks
             x_points = \
-                filter(lambda e: e is not None, list(set(resolved_counts[0].tolist() + unresolved_counts[0].tolist())))
+                filter(lambda e: e is not None, list(set(resolved_dict.keys() + unresolved_dict.keys())))
 
             # Remove outliers to the right, keep any values down to x = 0
             # All values with a z-score above Z_SCORE_THRESHOLD are filtered out
@@ -54,7 +54,7 @@ if __name__ == "__main__":
 
             # Some debug-ish printing, just in case
             if None in unresolved_counts or None in resolved_counts:
-                print(x_points)
+                print('\n', x_points)
                 print(y_resolved)
                 print(y_unresolved)
                 print('There is a None count in here somewhere above, ensure everything is in order!\n'
