@@ -24,15 +24,15 @@ if __name__ == "__main__":
             # print('Plotting ' + pickle_file[:-9] + '...')
 
             resolved_data_points = pickle.load(open(pickle_path + pickle_file, "rb"))
-            resolved_counts = resolved_data_points['data_points'].transpose()
+            resolved_counts = resolved_data_points['data_points']
 
             unresolved_data_points = pickle.load(open(pickle_path + pickle_file[:-8] + '0.pickle', "rb"))
-            unresolved_counts = unresolved_data_points['data_points'].transpose()
+            unresolved_counts = unresolved_data_points['data_points']
             # counts: [[indices], [values]]
 
             # Change data format into {index: count} for both resolved and unresolved
-            resolved_dict = dict(zip(resolved_counts[0].tolist(), resolved_counts[1].tolist()))
-            unresolved_dict = dict(zip(unresolved_counts[0].tolist(), unresolved_counts[1].tolist()))
+            resolved_dict = {a: b for a, b in resolved_counts}
+            unresolved_dict = {a: b for a, b in unresolved_counts}
 
             # Create a unique list of all data points, to be used as x-ticks
             x_points = \
