@@ -18,7 +18,7 @@ The project is divided into three folders:
 Responsible for collecting features from the big data set of StackOverflow. Uses spark to fetch the features. Each file contains a group of features and can be spark-submitted on its own to gather these features.
 However, to run all features at once and combine them into one resulting dataset, `run_all.py` can be used. Users can define what feature groups should be extracted and it will combine those automatically.
 
-To add a feature, create a new file and add your function definition. It should receive a `spark` context that can be used to interact with the Spark cluster. This method should return a dataframe at least one column: `_Id`. `_Id` is the Id of the post. Note: if using PostHistory.parquet as a source for data, be sure to use `_PostId` and rename the column to `_Id`.
+To add a feature, create a new file and add your function definition. It should receive a `spark` context that can be used to interact with the Spark cluster. This method should return a dataframe at least one column: `_Id`. `_Id` is the Id of the post. Note: if you are using PostHistory.parquet as a source for data, be sure to use `_PostId` and rename the column to `_Id`.
 
 ### Analysis
 Responsible for analyzing the features after feature collection has been done. This reads from a `output_stackoverflow.parquet` file which contain the extracted features.
