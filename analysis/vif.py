@@ -4,7 +4,6 @@ Based on: https://github.com/BhaskarBiswas/PySpark-Codes/blob/master/Automated_V
 from copy import deepcopy
 
 from pyspark.sql import SparkSession
-
 from pyspark.sql.functions import col
 from pyspark.ml.feature import VectorAssembler
 from pyspark.ml.regression import LinearRegression
@@ -12,6 +11,15 @@ from pyspark.ml.evaluation import RegressionEvaluator
 
 
 def calc_feature_pair_vifs(spark, features):
+    """ Calculate the VIF for each pairwise combination of features
+
+        Args:
+            spark (SparkSession): used to run queries and commands
+            features: list of names of all features of which pairwise combinations the VIF is calculated
+
+        Prints:
+            VIF of each pairwise combination
+    """
     feature_data = spark.read.parquet("/user/***REMOVED***/StackOverflow/output_stackoverflow.parquet")
     feature_data = feature_data.filter(feature_data["is_question"])
     feature_data = feature_data.select(*features)
@@ -28,10 +36,28 @@ def calc_feature_pair_vifs(spark, features):
             evaluator = RegressionEvaluator(predictionCol='prediction', labelCol='label')
             r_squared = evaluator.evaluate(prediction, {evaluator.metricName: "r2"})
             vif = 1 / (1 - r_squared)
-            print("pair - " + feature_data.columns[i] + " - " + feature_data.columns[j] + ": " + str(vif))
+            print("pair " + feature_data.columns[i] + " - " + feature_data.columns[j] + ": " + str(vif))
 
 
 def calc_one_out_vifs(spark, features):
+    """ Calculate the VIF for each 'leave-one-out' combination of features.
+
+        Example:
+            Original feature list:
+                [A, B, C, D]
+            VIF is calculated for:
+                [   B, C, D]
+                [A,    C, D]
+                [A, B,    D]
+                [A, B, C   ]
+
+        Args:
+            spark (SparkSession): used to run queries and commands
+            features: list of names of all features of which 'leave-one-out' combinations the VIF is calculated
+
+        Prints:
+            VIF of each 'leave-one-out' combination
+    """
     feature_data = spark.read.parquet("/user/***REMOVED***/StackOverflow/output_stackoverflow.parquet")
     feature_data = feature_data.filter(feature_data["is_question"])
 
@@ -47,7 +73,7 @@ def calc_one_out_vifs(spark, features):
         evaluator = RegressionEvaluator(predictionCol='prediction', labelCol=current_features[-1])
         r_squared = evaluator.evaluate(prediction, {evaluator.metricName: "r2"})
         vif = 1 / (1 - r_squared)
-        print("without - " + feature + ": " + str(vif))
+        print("without " + feature + ": " + str(vif))
 
 
 if __name__ == "__main__":
