@@ -13,7 +13,7 @@ import re
 CODE_BLOCK_RE = r'(?<=\n) {4}.*\n?'  # TODO does not detect code block at start of string
 HTML_BLOCK_RE = r' {0,3}(<[sS][cC][rR][iI][pP][tT]>.*</[sS][cC][rR][iI][pP][tT]>|<[pP][rR][eE]>.*</[pP][rR][eE]>|<[sS][tT][yY][lL][eE]>.*</[sS][tT][yY][lL][eE]>)'
 SETEXT_HEADING_RE = r'(?<=\n).*?\n[=-]+[ ]*(\n|(?!.))'
-REFERENCE_LIST_RE = r'(?<=\n) {0,3}(\[(?!\s*\])(?:\\\\|\\[\[\]]|[^\[\]])+\]):\s*(<(?:\\.|[^\n\\<>])*>|[^<\s]\S*)\s*(?:(?<=\s)(\"(?:\\\\|\\\"|[^\"])*\"|\'(?:\\\\|\\\'|[^\'])*\'|\((?:\\\\|\\\)|[^\(\)])*\)))?[^\n\S]*\n?'
+REFERENCE_LIST_RE = r'(?<!=.)[ ]{0,3}\[([^\]]*)\]:[ ]*\n?[ ]*([^\s]+)[ ]*\n?[ ]*(([\"\'])(.*)\4|\((.*)\))?[ ]*(?!.)'
 QUOTE_RE = r'(?<=\n) {0,3}>( (.|\n.)+|(?!.))(\n\n)?'  # r'(?<=\n) {0,3}>( (.|\n.)+)?(\n\n)?' #r'(?<=\n) {0,3}> ?(.|\n.)*(\n\n)?' #r'(?<=\n) {0,3}>[^\n\S]?(.|\n.)*(\n\n)?'# TODO does not detect quote at start of string
 HEADING_RE = r'(?<=\n) {0,3}(#{1,6})((?=\s)[^\n]*?|[^\n\S]*)(?:(?<=\s)(?<!\\)#+)?[^\n\S]*\n?'  # TODO does not detect heading at start of string
 LIST_RE = r'(?<=\n) {0,3}(\d{1,9}[.)]|[*\-+])[ \t\n\r\f][^\n\s]*\n?'  # TODO does not detect list items at start of string
