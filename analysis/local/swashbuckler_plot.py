@@ -11,7 +11,7 @@ STACKED = False  # Absolute values, stacked atop each other, all on linear axes
 PERCENTAGES = False  # Percentage values, where resolved and unresolved always add up to 100%
 
 # z-score to use as upper limit for outlier removal
-Z_SCORE_THRESHOLD = 1.5
+Z_SCORE_THRESHOLD = 2
 
 if __name__ == "__main__":
 
@@ -19,8 +19,7 @@ if __name__ == "__main__":
     pickle_path = '/Users/kyle/Projects/PycharmProjects/MBDProject/pickles/'
     for pickle_file in tqdm(os.listdir(pickle_path)):
         # Resolved files only, we will load unresolved a few lines later (manually)
-        # TODO: remove comment on next line
-        if pickle_file[-8] == '1':  # and pickle_file != 'output_#characters_1.pickle':
+        if pickle_file[-8] == '1':
             # print('Plotting ' + pickle_file[:-9] + '...')
 
             resolved_data_points = pickle.load(open(pickle_path + pickle_file, "rb"))
@@ -41,9 +40,7 @@ if __name__ == "__main__":
             # Remove outliers to the right, keep any values down to x = 0
             # All values with a z-score above Z_SCORE_THRESHOLD are filtered out
             z_scores = stats.zscore(x_points)
-            x_points = filter(lambda e: e[1] < Z_SCORE_THRESHOLD, zip(x_points, z_scores))
-            filtered_z_scores = [x[1] for x in x_points]
-            x_points = [x[0] for x in x_points]
+            x_points = [x[0] for x in filter(lambda e: abs(e[1]) > Z_SCORE_THRESHOLD, zip(x_points, z_scores))]
 
             # Build y arrays with 0 as default value, such that they are in the same order (for stacking)
             y_resolved = []
