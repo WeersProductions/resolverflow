@@ -15,7 +15,7 @@ LINE_END = r'(?!.)'
 CODE_BLOCK_RE = LINE_START + r' {4}.*' + LINE_END 
 HTML_BLOCK_RE = r' {0,3}(<[sS][cC][rR][iI][pP][tT]>.*</[sS][cC][rR][iI][pP][tT]>|<[pP][rR][eE]>.*</[pP][rR][eE]>|<[sS][tT][yY][lL][eE]>.*</[sS][tT][yY][lL][eE]>)'
 SETEXT_HEADING_RE = LINE_START + r'.*?\n[=-]+[ ]*(\n|(?!.))' + LINE_END
-REFERENCE_LIST_RE = LINE_START + r'([ ]{0,3}\[([^\]]*)\]:[ ]*\n?[ ]*([^\s]+)[ ]*\n?[ ]*(([\"\'])(.*)\4|\((.*)\))?[ ]*' + LINE_END
+REFERENCE_LIST_RE = LINE_START + r'[ ]{0,3}\[([^\]]*)\]:[ ]*\n?[ ]*([^\s]+)[ ]*\n?[ ]*(([\"\'])(.*)\4|\((.*)\))?[ ]*' + LINE_END
 QUOTE_RE = LINE_START + r' {0,3}>( (.|\n.)+|(?!.))(\n\n)?'
 HEADING_RE = LINE_START + r' {0,3}(#{1,6})((?=\s)[^\n]*?|[^\n\S]*)(?:(?<=\s)(?<!\\)#+)?[^\n\S]*' + LINE_END
 LIST_RE = LINE_START + r' {0,3}(\d{1,9}[.)]|[*\-+])[ \t\n\r\f][^\n\s]*' + LINE_END
