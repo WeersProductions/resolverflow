@@ -1,5 +1,8 @@
 import re
 
+""" Regex to recognize Markdown formatted elements.
+"""
+
 # Patterns loosely based on two sources. Every pattern is either fully created by us or made through much adaptation.
 # - Copyright 2007, 2008 The Python Markdown Project (v. 1.7 and later) Copyright 2004, 2005, 2006 Yuri Takhteyev (v. 0.2-1.6b) Copyright 2004 Manfred Stienstra (the original version)
 # - Marko. A markdown parser with high extensibility. Author: Frost Ming <mianghong@gmail.com>
