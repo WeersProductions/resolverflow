@@ -2,7 +2,6 @@ import os
 import pickle
 
 import matplotlib.pyplot as plt
-from scipy import stats
 from tqdm import tqdm
 
 # Adjust these values to get different output images plotted
@@ -35,12 +34,7 @@ if __name__ == "__main__":
 
             # Create a unique list of all data points, to be used as x-ticks
             x_points = \
-                filter(lambda e: e is not None, list(set(resolved_dict.keys() + unresolved_dict.keys())))
-
-            # Remove outliers to the right, keep any values down to x = 0
-            # All values with a z-score above Z_SCORE_THRESHOLD are filtered out
-            z_scores = stats.zscore(x_points)
-            x_points = [x[0] for x in filter(lambda e: abs(e[1]) > Z_SCORE_THRESHOLD, zip(x_points, z_scores))]
+                filter(lambda e: e is not None and e >= 0, list(set(resolved_dict.keys() + unresolved_dict.keys())))
 
             # Build y arrays with 0 as default value, such that they are in the same order (for stacking)
             y_resolved = []
@@ -51,7 +45,7 @@ if __name__ == "__main__":
 
             # Some debug-ish printing, just in case
             if None in unresolved_counts or None in resolved_counts:
-                print('\n', x_points)
+                print('\n' + str(x_points))
                 print(y_resolved)
                 print(y_unresolved)
                 print('There is a None count in here somewhere above, ensure everything is in order!\n'
@@ -60,14 +54,14 @@ if __name__ == "__main__":
             if ABSOLUTE:
                 # Create two bar plots that are stacked atop each other
                 plt.subplot(111)
-                resolved_bar = plt.bar([elem - 0.25 for elem in x_points], y_resolved, 0.5, color='lime',
-                                       align='center')
-                unresolved_bar = plt.bar([elem + 0.25 for elem in x_points], y_unresolved, 0.5, color='fuchsia',
-                                         align='center')
+                resolved_graph = plt.plot(x_points, y_resolved, color='green')
+                unresolved_graph = plt.plot(x_points, y_unresolved, color='orangered')
 
                 plt.ylabel('#ocurrences')
+                plt.xlabel(str(resolved_dict.get(-1, 0) + unresolved_dict.get(-1, 0)) + ' values were removed, ' +
+                           str(sum(y_resolved + y_unresolved)) + ' values retained')
                 plt.title(pickle_file[:-9])
-                plt.legend((resolved_bar[0], unresolved_bar[1]), ('resolved', 'unresolved'))
+                plt.legend((resolved_graph[0], unresolved_graph[0]), ('resolved', 'unresolved'))
 
                 # The #tags graph looks comically bad with log scales,
                 # you might actually want to try it just to see for yourself...
@@ -75,8 +69,7 @@ if __name__ == "__main__":
                     plt.yscale('log')
 
                 # Hand-picked some graphs that become absolutely unreadable on a linear scale
-                if pickle_file[7:-9] in ['#lines', '#words', 'average_line_length', 'average_word_length',
-                                         '#punctuation_characters']:
+                if pickle_file[7:-9] in ['average_line_length', 'average_word_length']:
                     plt.xscale('log')
 
                 plt.savefig('./swashplots/absolutes/' + pickle_file[7:-9] + '.png', dpi=300)
@@ -91,8 +84,10 @@ if __name__ == "__main__":
                 resolved_bar = plt.bar(x_points, y_resolved, 0.5, color='lime', align='center')
 
                 plt.ylabel('#ocurrences')
+                plt.xlabel(str(resolved_dict.get(-1, 0) + unresolved_dict.get(-1, 0)) + ' values were removed, ' +
+                           str(sum(y_resolved + y_unresolved)) + ' values retained')
                 plt.title(pickle_file[:-9])
-                plt.legend((resolved_bar[0], unresolved_bar[1]), ('resolved', 'unresolved'))
+                plt.legend((resolved_bar[0], unresolved_bar[0]), ('resolved', 'unresolved'))
 
                 plt.savefig('./swashplots/stacked/' + pickle_file[7:-9] + '.png', dpi=300)
                 # plt.show()
@@ -112,6 +107,8 @@ if __name__ == "__main__":
                 resolved_bar = plt.bar(x_points, resolved_percentages, 1, color='lime', bottom=unresolved_percentages)
 
                 plt.ylabel('percentage')
+                plt.xlabel(str(resolved_dict.get(-1, 0) + unresolved_dict.get(-1, 0)) + ' values were removed, ' +
+                           str(sum(y_resolved + y_unresolved)) + ' values retained')
                 plt.title(pickle_file[7:-9])
                 plt.legend((resolved_bar[0], unresolved_bar[0]), ('resolved', 'unresolved'))
 
