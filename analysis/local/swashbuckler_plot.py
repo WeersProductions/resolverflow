@@ -5,9 +5,9 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 # Adjust these values to get different output images plotted
-ABSOLUTE = True  # Absolute values, some of them plotted on log axes
+ABSOLUTE = False  # Absolute values, some of them plotted on log axes
 STACKED = False  # Absolute values, stacked atop each other, all on linear axes
-PERCENTAGES = False  # Percentage values, where resolved and unresolved always add up to 100%
+PERCENTAGES = True  # Percentage values, where resolved and unresolved always add up to 100%
 
 # z-score to use as upper limit for outlier removal
 Z_SCORE_THRESHOLD = 2
@@ -60,16 +60,20 @@ if __name__ == "__main__":
                 plt.ylabel('#ocurrences')
                 plt.xlabel(str(resolved_dict.get(-1, 0) + unresolved_dict.get(-1, 0)) + ' values were removed, ' +
                            str(sum(y_resolved + y_unresolved)) + ' values retained')
-                plt.title(pickle_file[:-9])
+                plt.title(pickle_file[7:-9].replace('_', ' '))
                 plt.legend((resolved_graph[0], unresolved_graph[0]), ('resolved', 'unresolved'))
+
+                if pickle_file in ['output_contains_language_tag_1.pickle', 'output_contains_platform_tag_1.pickle',
+                                   'output_title_contains_question_mark_1.pickle']:
+                    plt.xticks([0, 1], ['False', 'True'])
 
                 # The #tags graph looks comically bad with log scales,
                 # you might actually want to try it just to see for yourself...
-                if not pickle_file == 'output_#tags_1.pickle':
+                if not pickle_file in ['output_#tags_1.pickle', 'output_average_word_length_1.pickle']:
                     plt.yscale('log')
 
                 # Hand-picked some graphs that become absolutely unreadable on a linear scale
-                if pickle_file[7:-9] in ['average_line_length', 'average_word_length']:
+                if pickle_file[7:-9] in ['average_line_length']:  # , 'average_word_length']:
                     plt.xscale('log')
 
                 plt.savefig('./swashplots/absolutes/' + pickle_file[7:-9] + '.png', dpi=300)
@@ -79,14 +83,14 @@ if __name__ == "__main__":
                 plt.clf()
 
             if STACKED:
-                unresolved_bar = plt.bar(x_points, y_unresolved, 0.5, color='fuchsia', bottom=y_resolved,
+                unresolved_bar = plt.bar(x_points, y_unresolved, 0.5, color='orangered', bottom=y_resolved,
                                          align='center')
-                resolved_bar = plt.bar(x_points, y_resolved, 0.5, color='lime', align='center')
+                resolved_bar = plt.bar(x_points, y_resolved, 0.5, color='green', align='center')
 
                 plt.ylabel('#ocurrences')
                 plt.xlabel(str(resolved_dict.get(-1, 0) + unresolved_dict.get(-1, 0)) + ' values were removed, ' +
                            str(sum(y_resolved + y_unresolved)) + ' values retained')
-                plt.title(pickle_file[:-9])
+                plt.title(pickle_file[7:-9].replace('_', ' '))
                 plt.legend((resolved_bar[0], unresolved_bar[0]), ('resolved', 'unresolved'))
 
                 plt.savefig('./swashplots/stacked/' + pickle_file[7:-9] + '.png', dpi=300)
@@ -102,15 +106,18 @@ if __name__ == "__main__":
                 resolved_percentages = [float(resolved_dict.get(i, 0)) / j * 100 for i, j in zip(x_points, totals)]
                 unresolved_percentages = [float(unresolved_dict.get(i, 0)) / j * 100 for i, j in zip(x_points, totals)]
 
-                # plt.xlim(xmin=0)
-                unresolved_bar = plt.bar(x_points, unresolved_percentages, 1, color='fuchsia')
-                resolved_bar = plt.bar(x_points, resolved_percentages, 1, color='lime', bottom=unresolved_percentages)
+                unresolved_bar = plt.bar(x_points, unresolved_percentages, 1, color='orangered')
+                resolved_bar = plt.bar(x_points, resolved_percentages, 1, color='green', bottom=unresolved_percentages)
 
                 plt.ylabel('percentage')
                 plt.xlabel(str(resolved_dict.get(-1, 0) + unresolved_dict.get(-1, 0)) + ' values were removed, ' +
                            str(sum(y_resolved + y_unresolved)) + ' values retained')
-                plt.title(pickle_file[7:-9])
+                plt.title(pickle_file[7:-9].replace('_', ' '))
                 plt.legend((resolved_bar[0], unresolved_bar[0]), ('resolved', 'unresolved'))
+
+                if pickle_file in ['output_contains_language_tag_1.pickle', 'output_contains_platform_tag_1.pickle',
+                                   'output_title_contains_question_mark_1.pickle']:
+                    plt.xticks([0, 1], ['False', 'True'])
 
                 plt.savefig('./swashplots/percentages/' + pickle_file[7:-9] + '.png', dpi=300)
                 # plt.show()
