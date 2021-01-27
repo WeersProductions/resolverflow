@@ -51,7 +51,7 @@ def text_features_df(spark):
         .withColumn('punctuation_ratio', col('#punctuation_characters') / col('#characters')) \
         .withColumn('#lines', size(split(COL, r'\n'))) \
         .withColumn('average_line_length', col('#characters') / col('#lines')) \
-        .withColumn('#words', size(split(COL, r'\s'))) \
+        .withColumn('#words', size(split(COL, r'\s+'))) \
         .withColumn('average_word_length', col('#characters') / col('#words'))
 
     # Remove unnecessary columns, including parser helper column
