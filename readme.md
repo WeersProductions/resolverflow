@@ -37,3 +37,6 @@ To be run on a local machine. This uses .pickle files (small data) and can gener
 Generates qq plots for features. Different distributions can be plotted against a feature.
 - swashbuckler_plot.py
 Generates histograms of a feature for both resolved and unresolved questions.
+
+### Util
+Utility scripts. Used to e.g. convert parquet files to pickle files, or to join several .parquet files together into a single .parquet file.

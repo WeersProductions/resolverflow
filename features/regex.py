@@ -1,21 +1,26 @@
 import re
 
+""" Regex to recognize Markdown formatted elements.
+"""
+
 # Patterns loosely based on two sources. Every pattern is either fully created by us or made through much adaptation.
 # - Copyright 2007, 2008 The Python Markdown Project (v. 1.7 and later) Copyright 2004, 2005, 2006 Yuri Takhteyev (v. 0.2-1.6b) Copyright 2004 Manfred Stienstra (the original version)
 # - Marko. A markdown parser with high extensibility. Author: Frost Ming <mianghong@gmail.com>
 
 # === BLOCK ELEMENTS ==================================================
 # Ordered by precedence: you start with the highest number = highest priority
+LINE_START = r'(?<!.)'
+LINE_END = r'(?!.)'
 
-CODE_BLOCK_RE = r'(?<=\n) {4}.*\n?'  # TODO does not detect code block at start of string
+CODE_BLOCK_RE = LINE_START + r' {4}.*' + LINE_END 
 HTML_BLOCK_RE = r' {0,3}(<[sS][cC][rR][iI][pP][tT]>.*</[sS][cC][rR][iI][pP][tT]>|<[pP][rR][eE]>.*</[pP][rR][eE]>|<[sS][tT][yY][lL][eE]>.*</[sS][tT][yY][lL][eE]>)'
-SETEXT_HEADING_RE = r'(?<=\n).*?\n[=-]+[ ]*(\n|(?!.))'
-REFERENCE_LIST_RE = r'(?<=\n) {0,3}(\[(?!\s*\])(?:\\\\|\\[\[\]]|[^\[\]])+\]):\s*(<(?:\\.|[^\n\\<>])*>|[^<\s]\S*)\s*(?:(?<=\s)(\"(?:\\\\|\\\"|[^\"])*\"|\'(?:\\\\|\\\'|[^\'])*\'|\((?:\\\\|\\\)|[^\(\)])*\)))?[^\n\S]*\n?'
-QUOTE_RE = r'(?<=\n) {0,3}>( (.|\n.)+|(?!.))(\n\n)?'  # r'(?<=\n) {0,3}>( (.|\n.)+)?(\n\n)?' #r'(?<=\n) {0,3}> ?(.|\n.)*(\n\n)?' #r'(?<=\n) {0,3}>[^\n\S]?(.|\n.)*(\n\n)?'# TODO does not detect quote at start of string
-HEADING_RE = r'(?<=\n) {0,3}(#{1,6})((?=\s)[^\n]*?|[^\n\S]*)(?:(?<=\s)(?<!\\)#+)?[^\n\S]*\n?'  # TODO does not detect heading at start of string
-LIST_RE = r'(?<=\n) {0,3}(\d{1,9}[.)]|[*\-+])[ \t\n\r\f][^\n\s]*\n?'  # TODO does not detect list items at start of string
+SETEXT_HEADING_RE = LINE_START + r'.*?\n[=-]+[ ]*(\n|(?!.))' + LINE_END
+REFERENCE_LIST_RE = LINE_START + r'[ ]{0,3}\[([^\]]*)\]:[ ]*\n?[ ]*([^\s]+)[ ]*\n?[ ]*(([\"\'])(.*)\4|\((.*)\))?[ ]*' + LINE_END
+QUOTE_RE = LINE_START + r' {0,3}>( (.|\n.)+|(?!.))(\n\n)?'
+HEADING_RE = LINE_START + r' {0,3}(#{1,6})((?=\s)[^\n]*?|[^\n\S]*)(?:(?<=\s)(?<!\\)#+)?[^\n\S]*' + LINE_END
+LIST_RE = LINE_START + r' {0,3}(\d{1,9}[.)]|[*\-+])[ \t\n\r\f][^\n\s]*' + LINE_END
 FENCED_CODE_RE = r' {0,3}(`{3,}|~{3,})[^\n\S]*((.|\n)*?)( {0,3})(`{3,}|~{3,})'
-THEME_BREAK_RE = r'(?<=\n) {0,3}([-_*][^\n\S]*){3,}\n?'  # TODO does not detect theme breaks at start of string
+THEME_BREAK_RE = LINE_START + r' {0,3}([-_*][^\n\S]*){3,}' + LINE_END
 
 # === INLINE ELEMENTS ==================================================
 
