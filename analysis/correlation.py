@@ -1,11 +1,36 @@
 from pyspark.sql import SparkSession, Row
 from pyspark.ml.stat import Correlation
 from pyspark.ml.feature import VectorAssembler
+from pyspark.sql.functions import mean as _mean, col, stddev, abs, when
+from pyspark.sql.types import BooleanType
+
+
+def filter_outliers(dataframe, exclude_columns):
+    """
+    For every feature, except those in exclude_columns, set all outliers to NULL.
+    """
+    for column in dataframe.columns:
+        if column in exclude_columns:
+            continue
+        # Exclude boolean types.
+        if dataframe.schema[column].dataType == BooleanType():
+            continue
+        stats = dataframe \
+            .select(_mean(col(column)).alias('mean'), stddev(col(column)).alias('std')) \
+            .collect()
+        mean = stats[0]['mean']
+        std = stats[0]['std']
+        print("mean: %s; std: %s" % (str(mean), str(std)))
+        count_before = dataframe.filter(col(column).isNull()).count()
+        dataframe = dataframe.withColumn(column, when(abs((col(column) - mean) / std) < 2, col(column)).otherwise(None))
+        print("Deleted %s entries because of z-score for %s." % (str(dataframe.filter(col(column).isNull()).count() - count_before), column))
+    return dataframe
 
 
 def load_feature_data(spark):
     feature_data = spark.read.parquet("/user/***REMOVED***/StackOverflow/output_stackoverflow.parquet")
     feature_data = feature_data.filter(feature_data["is_question"])
+    feature_data = filter_outliers(feature_data, ["_Id"])
     return feature_data
 
 
@@ -49,9 +74,4 @@ if __name__ == "__main__":
     """
     print("Starting correlation analysis.")
     spark = SparkSession.builder.getOrCreate()
-    calc_correlation_label(spark, ["title_contains_questionmark", "title_number_of_characters", "number_of_characters",
-                                   "number_of_interpunction_characters", "number_of_emoji_characters",
-                                   "interpunction_ratio", "emoji_ratio", "number_of_lines", "average_line_length",
-                                   "number_of_words", "average_word_length", "creation_seconds", "number_of_tags",
-                                   "contains_language_tag", "contains_platform_tag", "user_age", "posts_amount",
-                                   "answered_posts_amount"], "has_answer")
+    calc_correlation_label(spark, ['title_contains_questionmark', '#title_characters', 'creation_seconds', '#tags', 'contains_language_tag', 'contains_platform_tag', 'user_age', '#posts', '#answered_posts', '#characters', '#punctuation_characters', 'punctuation_ratio', '#lines', 'average_line_length', '#words', 'average_word_length', '#codeblocks', '#html_blocks', '#headings', '#referencelist', '#quotes', '#themebreaks', '#codespans', '#references', '#links', '#inline_images', '#mail_addresses', '#emphasis', '#strong'], "has_answer")

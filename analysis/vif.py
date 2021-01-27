@@ -8,9 +8,10 @@ from pyspark.sql.functions import col
 from pyspark.ml.feature import VectorAssembler
 from pyspark.ml.regression import LinearRegression
 from pyspark.ml.evaluation import RegressionEvaluator
+from pyspark.sql.types import IntegerType
 
 
-def calc_feature_pair_vifs(spark, features):
+def calc_feature_pair_vifs(spark, features, boolean_features):
     """ Calculate the VIF for each pairwise combination of features
 
         Args:
@@ -23,6 +24,9 @@ def calc_feature_pair_vifs(spark, features):
     feature_data = spark.read.parquet("/user/***REMOVED***/StackOverflow/output_stackoverflow.parquet")
     feature_data = feature_data.filter(feature_data["is_question"])
     feature_data = feature_data.select(*features)
+
+    for boolean_feature in boolean_features:
+        feature_data = feature_data.withColumn(boolean_feature, col(boolean_feature).cast(IntegerType()))
 
     for i in range(len(feature_data.columns) - 1):
         for j in range(i + 1, len(feature_data.columns)):
@@ -39,7 +43,7 @@ def calc_feature_pair_vifs(spark, features):
             print("pair " + feature_data.columns[i] + " - " + feature_data.columns[j] + ": " + str(vif))
 
 
-def calc_one_out_vifs(spark, features):
+def calc_one_out_vifs(spark, features, boolean_features):
     """ Calculate the VIF for each 'leave-one-out' combination of features.
 
         Example:
@@ -61,6 +65,9 @@ def calc_one_out_vifs(spark, features):
     feature_data = spark.read.parquet("/user/***REMOVED***/StackOverflow/output_stackoverflow.parquet")
     feature_data = feature_data.filter(feature_data["is_question"])
 
+    for boolean_feature in boolean_features:
+        feature_data = feature_data.withColumn(boolean_feature, col(boolean_feature).cast(IntegerType()))
+
     for feature_index, feature in enumerate(features):
         current_features = deepcopy(features)
         del current_features[feature_index]
@@ -78,7 +85,8 @@ def calc_one_out_vifs(spark, features):
 
 if __name__ == "__main__":
     print("Starting vif analysis.")
-    testing_features = ['#characters', '#punctuation_characters', 'punctuation_ratio', '#lines']
+    testing_features = ['#codeblocks', '#codespans', '#title_characters', 'average_line_length', 'average_word_length', 'contains_language_tag', 'contains_platform_tag', 'title_contains_questionmark']
+    boolean_features = ['contains_language_tag', 'contains_platform_tag', 'title_contains_questionmark']
     global_spark = SparkSession.builder.getOrCreate()
-    calc_feature_pair_vifs(global_spark, testing_features)
-    calc_one_out_vifs(global_spark, testing_features)
+    calc_feature_pair_vifs(global_spark, testing_features, boolean_features)
+    calc_one_out_vifs(global_spark, testing_features, boolean_features)

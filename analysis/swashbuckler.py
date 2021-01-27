@@ -1,11 +1,15 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col
+from pyspark.sql.functions import col, mean as _mean, stddev, abs, when
 from pyspark.sql.types import IntegerType
 
 INTEGER_FEATURES = ['#title_characters', '#characters', '#punctuation_characters', '#lines', '#words', '#tags',
-                    '#posts', '#answered_posts']
-FLOAT_FEATURES = ['punctuation_ratio', 'average_line_length', 'average_word_length', 'user_age', 'creation_seconds']
-BOOLEAN_FEATURES = []
+                    '#posts', '#answered_posts', '#codeblocks', '#html_blocks', '#headings', '#referencelist',
+                    '#quotes', '#themebreaks', '#codespans', '#references', '#links', '#inline_images',
+                    '#mail_addresses', '#emphasis', '#strong', '#codelines']
+FLOAT_FEATURES = ['punctuation_ratio', 'average_line_length', 'average_word_length', 'user_age', 'creation_seconds',
+                  'codeline_ratio', 'codeblock_ratio', 'heading_ratio', 'themebreak_ratio', 'codespan_ratio',
+                  'emphasis_ratio', 'strong_ratio']
+BOOLEAN_FEATURES = ['title_contains_questionmark', 'contains_language_tag', 'contains_platform_tag']
 
 
 def create_parquet_files(spark_session):
@@ -23,7 +27,20 @@ def create_parquet_files(spark_session):
 
     all_results = []
 
-    for feature in INTEGER_FEATURES + FLOAT_FEATURES:
+    for feature in INTEGER_FEATURES + FLOAT_FEATURES + BOOLEAN_FEATURES:
+
+        # Replace all outliers with z-score above 2 with -1, unless they're boolean
+        if feature not in BOOLEAN_FEATURES:
+            stats = all_features \
+                .select(_mean(col(feature)).alias('mean'), stddev(col(feature)).alias('std')) \
+                .collect()
+            mean = stats[0]['mean']
+            std = stats[0]['std']
+
+            all_features = all_features.withColumn(feature,
+                                                   when(abs((col(feature) - mean) / std) < 2,
+                                                        col(feature)).otherwise(-1))
+
         original_feature = feature
         if feature in FLOAT_FEATURES:
             # Bucketize each float feature into '${feature}_bucket_index' columns
@@ -45,6 +62,5 @@ def create_parquet_files(spark_session):
 
 
 if __name__ == '__main__':
-    print('Creating histogram plots')
     spark = SparkSession.builder.getOrCreate()
     create_parquet_files(spark)
