@@ -14,7 +14,7 @@ spark = SparkSession.builder.getOrCreate()
 
 def Convert(source, destination, row_element, filter):
     df = spark.read.format("xml").options(rowTag=row_element).load(source)
-    if apply_filters and filter != None:
+    if apply_filters and filter is not None:
         df = df.filter(filter)
     df.write.parquet(destination)
 
