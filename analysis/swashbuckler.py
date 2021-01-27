@@ -5,8 +5,10 @@ from pyspark.sql.types import IntegerType
 INTEGER_FEATURES = ['#title_characters', '#characters', '#punctuation_characters', '#lines', '#words', '#tags',
                     '#posts', '#answered_posts', '#codeblocks', '#html_blocks', '#headings', '#referencelist',
                     '#quotes', '#themebreaks', '#codespans', '#references', '#links', '#inline_images',
-                    '#mail_addresses', '#emphasis', '#strong']
-FLOAT_FEATURES = ['punctuation_ratio', 'average_line_length', 'average_word_length', 'user_age', 'creation_seconds']
+                    '#mail_addresses', '#emphasis', '#strong', '#codelines']
+FLOAT_FEATURES = ['punctuation_ratio', 'average_line_length', 'average_word_length', 'user_age', 'creation_seconds',
+                  'codeline_ratio', 'codeblock_ratio', 'heading_ratio', 'themebreak_ratio', 'codespan_ratio',
+                  'emphasis_ratio', 'strong_ratio']
 BOOLEAN_FEATURES = ['title_contains_questionmark', 'contains_language_tag', 'contains_platform_tag']
 
 
