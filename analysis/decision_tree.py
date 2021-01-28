@@ -48,8 +48,8 @@ class ModelResult:
 
     def __str__(self):
         evaluation_string = "no evaluation"
-        if self.evaluation is not None:
-            evaluation_string = str(self.evaluation)
+        if self.evaluation is not None and len(self.evaluation) > 0:
+            evaluation_string = [str(x) + "\n" for x in self.evaluation]
         feature_importance_string = "no feature importance"
         if self.feature_importance is not None:
             feature_importance_string = str(self.feature_importance)
@@ -85,6 +85,7 @@ def get_and_prepare_data(spark, original_label_col, label_col, feature_col_names
     feature_data = load_feature_data(spark)
     feature_data = feature_data.withColumnRenamed(original_label_col, label_col)
     feature_data = feature_data.withColumn(label_col, col(label_col).cast("integer"))
+    feature_data = feature_data.dropna()
     assembler = VectorAssembler(inputCols=feature_col_names, outputCol=vector_col)
     data = assembler.transform(feature_data).select(label_col, vector_col)
 
@@ -119,7 +120,7 @@ def evaluate(evaluator, predictions, vector_col, model, pipeline_model_index):
     return EvaluationResult((test_name, test_value), treeModel, treeModel.toDebugString)
 
 
-def run_model(spark, original_label_col, label_col, vector_col, feature_col_names, model, evaluator):
+def run_model(spark, original_label_col, label_col, vector_col, feature_col_names, model, evaluators):
     model_result = ModelResult(str(type(model)))
 
     data = get_and_prepare_data(spark, original_label_col, label_col, feature_col_names, vector_col)
@@ -131,7 +132,9 @@ def run_model(spark, original_label_col, label_col, vector_col, feature_col_name
     predictions = model.transform(testData)
 
     prediction_results = predictions.select("predictedLabel", "label", "features").take(5)
-    evaluation_results = evaluate(evaluator, predictions, vector_col, model, pipeline_model_idx)
+    evaluation_results = []
+    for evaluator in evaluators:
+        evaluation_results.append(evaluate(evaluator, predictions, vector_col, model, pipeline_model_idx))
     feature_importance = get_feature_importance(model.stages[pipeline_model_idx], predictions, vector_col)
 
     # Add to the model_result
@@ -150,7 +153,11 @@ def decision_tree_classifier(spark, original_label_col, feature_col_names):
     dt = DecisionTreeClassifier(labelCol="indexedLabel", featuresCol="indexedFeatures")
     evaluator = MulticlassClassificationEvaluator(labelCol="indexedLabel", predictionCol="prediction",
                                                   metricName="accuracy")
-    return run_model(spark, original_label_col, label_col, vector_col, feature_col_names, dt, evaluator)
+    evaluator_w_precision = MulticlassClassificationEvaluator(labelCol="indexedLabel", predictionCol="prediction",
+                                                  metricName="weightedPrecision")
+    evaluator_w_recall = MulticlassClassificationEvaluator(labelCol="indexedLabel", predictionCol="prediction",
+                                                  metricName="weightedRecall")
+    return run_model(spark, original_label_col, label_col, vector_col, feature_col_names, dt, [evaluator, evaluator_w_precision, evaluator_w_recall])
 
 
 def decision_tree_regressor(spark, original_label_col, feature_col_names):
@@ -160,7 +167,7 @@ def decision_tree_regressor(spark, original_label_col, feature_col_names):
 
     dt = DecisionTreeRegressor(labelCol="indexedLabel", featuresCol="indexedFeatures")
     evaluator = RegressionEvaluator(labelCol="indexedLabel", predictionCol="prediction", metricName="mae")
-    return run_model(spark, original_label_col, label_col, vector_col, feature_col_names, dt, evaluator)
+    return run_model(spark, original_label_col, label_col, vector_col, feature_col_names, dt, [evaluator])
 
 
 def get_feature_importance(model, prediction_df, feature_col):
@@ -179,19 +186,20 @@ def get_feature_importance(model, prediction_df, feature_col):
 
 if __name__ == "__main__":
     """
-    Run using: spark-submit --master yarn --deploy-mode cluster --conf spark.dynamicAllocation.maxExecutors=10 --name dreamteam analysis/decision_tree.py 2> /dev/null
+    Run using: spark-submit --master yarn --deploy-mode cluster --conf spark.dynamicAllocation.maxExecutors=20 --conf spark.yarn.maxAppAttempts=1 --name dreamteam analysis/decision_tree.py 2> /dev/null
     """
 
     print("Starting analysis.")
     spark = SparkSession.builder.getOrCreate()
 
     # Train a model and print feature importance.
-    features = ["title_contains_questionmark", "#title_characters", "creation_seconds", "#tags",
-                "contains_language_tag", "contains_platform_tag", "user_age", "posts_amount", "answered_posts_amount"]
+    features = ["#codeblocks", "#codespans", "average_word_length", "contains_language_tag",
+                "title_contains_questionmark"]
     label = "has_answer"
 
-    regressor_result = decision_tree_regressor(spark, label, features)
-    regressor_result.evaluation.model.save("StackOverflow/analysis/regressor_saved.parquet")
-    print(regressor_result)
-    # classifier_result = decision_tree_classifier(spark, label, features)
-    # print(classifier_result)
+    # regressor_result = decision_tree_regressor(spark, label, features)
+    # regressor_result.evaluation.model.save("StackOverflow/analysis/regressor_saved.parquet")
+    # print(regressor_result)
+    classifier_result = decision_tree_classifier(spark, label, features)
+    # classifier_result.evaluation.model.save("StackOverflow/analysis/classifier_saved_training.parquet")
+    print(classifier_result)

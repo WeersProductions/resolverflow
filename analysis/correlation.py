@@ -22,8 +22,8 @@ def filter_outliers(dataframe, exclude_columns):
         std = stats[0]['std']
         print("mean: %s; std: %s" % (str(mean), str(std)))
         count_before = dataframe.filter(col(column).isNull()).count()
-        dataframe = dataframe.withColumn(column, when(abs((col(column) - mean) / std) < 2, col(column)).otherwise(None))
-        print("Deleted %s entries because of z-score for %s." % (str(dataframe.filter(col(column).isNull()).count() - count_before), column))
+        dataframe = dataframe.withColumn(column, when(abs((col(column) - mean) / std) < 3, col(column)).otherwise(None))
+        print("Deleted %s entries because of z-score (3) for %s." % (str(dataframe.filter(col(column).isNull()).count() - count_before), column))
     return dataframe
 
 
@@ -70,8 +70,8 @@ def calc_correlation(feature_columns, feature_data):
 
 if __name__ == "__main__":
     """
-    Run using:  spark-submit --master yarn --deploy-mode cluster --conf spark.dynamicAllocation.maxExecutors=10 --conf spark.yarn.maxAppAttempts=1 --name dreamteam analysis/correlation.py 2> /dev/null
+    Run using:  spark-submit --master yarn --deploy-mode cluster --conf spark.dynamicAllocation.maxExecutors=70 --conf spark.yarn.maxAppAttempts=1 --driver-memory 4G --executor-memory 4G --name dreamteam analysis/correlation.py 2> /dev/null
     """
     print("Starting correlation analysis.")
     spark = SparkSession.builder.getOrCreate()
-    calc_correlation_label(spark, ['title_contains_questionmark', '#title_characters', 'creation_seconds', '#tags', 'contains_language_tag', 'contains_platform_tag', 'user_age', '#posts', '#answered_posts', '#characters', '#punctuation_characters', 'punctuation_ratio', '#lines', 'average_line_length', '#words', 'average_word_length', '#codeblocks', '#html_blocks', '#headings', '#referencelist', '#quotes', '#themebreaks', '#codespans', '#references', '#links', '#inline_images', '#mail_addresses', '#emphasis', '#strong'], "has_answer")
+    calc_correlation_label(spark, ['title_contains_questionmark', '#title_characters', '#characters', '#punctuation_characters', 'punctuation_ratio', '#lines', 'average_line_length', '#words', 'average_word_length', '#tags', 'contains_language_tag', 'contains_platform_tag', '#posts', '#answered_posts', '#codelines', 'codeline_ratio', '#html_blocks', '#headings', '#referencelist', '#quotes', 'heading_ratio', '#codeblocks', 'codeblock_ratio', '#themebreaks', 'themebreak_ratio', '#codespans', 'codespan_ratio', '#references', '#links', '#inline_images', '#mail_addresses', '#emphasis', '#strong', 'emphasis_ratio', 'strong_ratio'], "has_answer")
