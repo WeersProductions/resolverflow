@@ -34,6 +34,7 @@ def run_all(spark):
 
 if __name__ == "__main__":
     """
+    Extracts all features that are defined in the `all_features` variable above. Joins them on the '_Id' column.
     Run this using: spark-submit --master yarn --deploy-mode cluster --conf spark.dynamicAllocation.maxExecutors=20 --conf spark.yarn.maxAppAttempts=1 --name dreamteam --py-files title_features.py,text_features.py,post_time.py,tag_info.py,user_features.py,post_answered.py,post_is_question.py,text.py,regex.py run_all.py --file "StackOverflow/output_stackoverflow.parquet" 2> /dev/null
 
     --py-files, a list of python files that are imported from this file.
