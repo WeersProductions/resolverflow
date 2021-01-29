@@ -193,8 +193,8 @@ if __name__ == "__main__":
     spark = SparkSession.builder.getOrCreate()
 
     # Train a model and print feature importance.
-    features = ["#codeblocks", "#codespans", "average_word_length", "contains_language_tag",
-                "title_contains_questionmark"]
+    features = ["#codespans", "average_word_length", "contains_language_tag",
+                "codeline_ratio"]
     label = "has_answer"
 
     # regressor_result = decision_tree_regressor(spark, label, features)
