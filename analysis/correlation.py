@@ -28,6 +28,9 @@ def filter_outliers(dataframe, exclude_columns):
 
 
 def load_feature_data(spark):
+    """
+    Load the output data and remove all non-questions.
+    """
     feature_data = spark.read.parquet("/user/***REMOVED***/StackOverflow/output_stackoverflow.parquet")
     feature_data = feature_data.filter(feature_data["is_question"])
     feature_data = filter_outliers(feature_data, ["_Id"])
@@ -35,6 +38,13 @@ def load_feature_data(spark):
 
 
 def calc_correlation_label(spark, feature_columns, label_column):
+    """
+    Calculate the pairwise correlation with the given label column for each column in feature_columns.
+
+    Args:
+        feature_columns ([string]): list of columns that are part of the features.
+        label_column (string): column name of the label column.
+    """
     result = []
     feature_data = load_feature_data(spark)
     for feature_column in feature_columns:
@@ -56,7 +66,7 @@ def calc_correlation_label(spark, feature_columns, label_column):
 
 def calc_correlation(feature_columns, feature_data):
     """
-    Calculates the Spearman Correlation Coefficient
+    Calculates the Spearman Correlation Coefficient between all given columns.
     """
     print("-- Calculating correlation --")
     print("Features: ", feature_columns)
