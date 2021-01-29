@@ -12,6 +12,7 @@ def count_unresolved(dataset):
 
 if __name__ == "__main__":
     """
+    Counts the amount of resolved and unresolved posts from the output dataset.
     Run using: spark-submit --master yarn --deploy-mode cluster --conf spark.dynamicAllocation.maxExecutors=10 --conf spark.yarn.maxAppAttempts=1 --name dreamteam util/count_resolved.py 2> /dev/null
     """
     spark = SparkSession.builder.getOrCreate()

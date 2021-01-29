@@ -4,8 +4,12 @@ from pyspark.sql.functions import when, col
 
 def post_answered_df(spark):
     """
-    Return a dataframe that only contains post ids and whether they are answered or not.
-    :return: dataframe
+    Checks whether a post is answered or not.
+
+    Returns:
+        DataFrame: With columns [
+            (post)_Id, has_answer
+        ]
     """
 
     df = spark.read.parquet('/user/s*******/StackOverflow/Posts.parquet') \

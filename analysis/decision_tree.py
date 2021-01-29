@@ -8,6 +8,7 @@ from pyspark.ml.classification import DecisionTreeClassifier, RandomForestClassi
 from pyspark.ml.regression import DecisionTreeRegressor
 from pyspark.ml.feature import StringIndexer, VectorIndexer, IndexToString
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator, RegressionEvaluator
+from pyspark.ml.tuning import CrossValidator, ParamGridBuilder
 
 
 class EvaluationResult:
@@ -43,6 +44,9 @@ class ModelResult:
     def add_feature_importance(self, feature_importance):
         self.feature_importance = feature_importance
 
+    def add_prediction_results_sample(self, prediction_results_sample):
+        self.prediction_results_sample = prediction_results_sample
+
     def add_prediction_results(self, prediction_results):
         self.prediction_results = prediction_results
 
@@ -54,8 +58,8 @@ class ModelResult:
         if self.feature_importance is not None:
             feature_importance_string = str(self.feature_importance)
         prediction_results_string = "no predictions"
-        if self.prediction_results is not None:
-            prediction_results_string = str(self.prediction_results)
+        if self.prediction_results_sample is not None:
+            prediction_results_string = str(self.prediction_results_sample)
         return "-- %s -- \n Evaluation: %s \n Feature importance: %s \n Prediction results: %s" % (
         self.model_name, evaluation_string, feature_importance_string, prediction_results_string)
 
@@ -131,13 +135,16 @@ def run_model(spark, original_label_col, label_col, vector_col, feature_col_name
     model = pipeline.fit(trainingData)
     predictions = model.transform(testData)
 
-    prediction_results = predictions.select("predictedLabel", "label", "features").take(5)
+    prediction_results_sample = predictions.select("predictedLabel", "label", "features").take(5)
+    # prediction_results = predictions.select("label").groupBy("label").count().sort('count', ascending=False)
+    prediction_results = predictions.select("label", "predictedLabel")
     evaluation_results = []
     for evaluator in evaluators:
         evaluation_results.append(evaluate(evaluator, predictions, vector_col, model, pipeline_model_idx))
     feature_importance = get_feature_importance(model.stages[pipeline_model_idx], predictions, vector_col)
 
     # Add to the model_result
+    model_result.add_prediction_results_sample(prediction_results_sample)
     model_result.add_prediction_results(prediction_results)
     model_result.add_evaluation(evaluation_results)
     model_result.add_feature_importance(feature_importance)
@@ -193,13 +200,14 @@ if __name__ == "__main__":
     spark = SparkSession.builder.getOrCreate()
 
     # Train a model and print feature importance.
-    features = ["#codeblocks", "#codespans", "average_word_length", "contains_language_tag",
-                "title_contains_questionmark"]
+    features = ["#codespans", "average_word_length", "contains_language_tag",
+                "codeline_ratio"]
     label = "has_answer"
 
     # regressor_result = decision_tree_regressor(spark, label, features)
     # regressor_result.evaluation.model.save("StackOverflow/analysis/regressor_saved.parquet")
     # print(regressor_result)
     classifier_result = decision_tree_classifier(spark, label, features)
+    classifier_result.prediction_results.write.mode("overwrite").parquet("StackOverflow/analysis/classifier_prediction_results.parquet")
     # classifier_result.evaluation.model.save("StackOverflow/analysis/classifier_saved_training.parquet")
     print(classifier_result)

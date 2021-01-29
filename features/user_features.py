@@ -4,6 +4,17 @@ from pyspark.sql.types import LongType
 
 
 def user_age_df(spark):
+    """
+    Calculate the age of the user when he made a post.
+
+    Args:
+        spark ([type]): [description]
+
+    Returns:
+        DataFrame: With columns [
+            (post)_Id, user_age
+        ]
+    """
     df_posts = spark.read.parquet('/user/s*******/StackOverflow/Posts.parquet') \
         .select(['_Id', '_CreationDate', '_OwnerUserId']) \
         .withColumnRenamed('_CreationDate', '_PostCreationDate')
@@ -23,6 +34,11 @@ def user_age_df(spark):
 def user_question_amount(spark):
     """
     Calculate the amount of questions a user has made and how many have been answered before a post is created.
+
+    Returns:
+        DataFrame: With columns [
+            (post)_Id, #posts, #answered_posts
+        ]
     """
     df_posts = spark.read.parquet('/user/s*******/StackOverflow/Posts.parquet') \
         .select(['_Id', '_OwnerUserId', '_CreationDate', '_AcceptedAnswerId', '_PostTypeId']) \
