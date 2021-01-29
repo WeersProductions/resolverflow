@@ -1,7 +1,6 @@
 import re
 
-""" Regex to recognize Markdown formatted elements.
-"""
+""" Regex to recognize Markdown formatted elements. """
 
 # Patterns loosely based on two sources. Every pattern is either fully created by us or made through much adaptation.
 # - Copyright 2007, 2008 The Python Markdown Project (v. 1.7 and later) Copyright 2004, 2005, 2006 Yuri Takhteyev (v. 0.2-1.6b) Copyright 2004 Manfred Stienstra (the original version)
@@ -81,11 +80,11 @@ LINE_BREAK_RE = r'  \n'
 
 # Direct HTML 
 #   <...>
-HTML_RE = r'(<([a-zA-Z/][^<>]*|!--(?:(?!<!--|-->).)*--)>)'  # TODO this now finds start tags, end tags, and self-closing tags. Change that a start+end tag pair count as 1.
+HTML_RE = r'(<([a-zA-Z/][^<>]*|!--(?:(?!<!--|-->).)*--)>)'
 ENTITY_RE = r'(&(?:\#[0-9]+|\#x[0-9a-fA-F]+|[a-zA-Z0-9]+);)'  # ampersands in HTML
 
 # Stand-alone * or _
-NOT_STRONG_RE = r'((^|\s)(\*|_)(\s|$))'  # TODO check if these need attention, it seems they are just ignored
+NOT_STRONG_RE = r'((^|\s)(\*|_)(\s|$))'
 
 # Asterisks
 #   ***strongem*** or ***em*strong**
