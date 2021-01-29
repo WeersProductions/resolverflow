@@ -17,6 +17,7 @@ def calc_feature_pair_vifs(spark, features, boolean_features):
         Args:
             spark (SparkSession): used to run queries and commands
             features: list of names of all features of which pairwise combinations the VIF is calculated
+            boolean_features: list of names of those features that are of boolean type
 
         Prints:
             VIF of each pairwise combination
@@ -44,7 +45,8 @@ def calc_feature_pair_vifs(spark, features, boolean_features):
 
 
 def calc_one_out_vifs(spark, features, boolean_features):
-    """ Calculate the VIF for each 'leave-one-out' combination of features.
+    """ Calculate the VIF for each 'leave-one-out' combination of features and the loss of these VIFs based on the VIF
+        of all the features together.
 
         Example:
             Original feature list:
@@ -54,19 +56,33 @@ def calc_one_out_vifs(spark, features, boolean_features):
                 [A,    C, D]
                 [A, B,    D]
                 [A, B, C   ]
+                [A, B, C, D]
 
         Args:
             spark (SparkSession): used to run queries and commands
             features: list of names of all features of which 'leave-one-out' combinations the VIF is calculated
+            boolean_features: list of names of those features that are of boolean type
 
         Prints:
             VIF of each 'leave-one-out' combination
+            Loss of each 'leave-one-out' combination based on the VIF of all features together
     """
     feature_data = spark.read.parquet("/user/***REMOVED***/StackOverflow/output_stackoverflow.parquet")
     feature_data = feature_data.filter(feature_data["is_question"])
 
     for boolean_feature in boolean_features:
         feature_data = feature_data.withColumn(boolean_feature, col(boolean_feature).cast(IntegerType()))
+
+    df = feature_data.select(*features).dropna()
+    assembler = VectorAssembler(inputCols=features[:-1], outputCol='feature', handleInvalid='skip')
+    df = assembler.transform(df)
+    linear_regression = LinearRegression(featuresCol='feature', labelCol=features[-1])
+    linear_regression_model = linear_regression.fit(df)
+    prediction = linear_regression_model.transform(df)
+    evaluator = RegressionEvaluator(predictionCol='prediction', labelCol=features[-1])
+    r_squared = evaluator.evaluate(prediction, {evaluator.metricName: "r2"})
+    total_vif = 1 / (1 - r_squared)
+    print("All features included: " + str(total_vif))
 
     for feature_index, feature in enumerate(features):
         current_features = deepcopy(features)
@@ -80,13 +96,14 @@ def calc_one_out_vifs(spark, features, boolean_features):
         evaluator = RegressionEvaluator(predictionCol='prediction', labelCol=current_features[-1])
         r_squared = evaluator.evaluate(prediction, {evaluator.metricName: "r2"})
         vif = 1 / (1 - r_squared)
-        print("without " + feature + ": " + str(vif))
+        print("without " + feature + ": " + str(vif) + ", loss: " + str(total_vif - vif))
 
 
 if __name__ == "__main__":
     print("Starting vif analysis.")
-    testing_features = ['#codeblocks', '#codespans', '#title_characters', 'average_line_length', 'average_word_length', 'contains_language_tag', 'contains_platform_tag', 'title_contains_questionmark']
-    boolean_features = ['contains_language_tag', 'contains_platform_tag', 'title_contains_questionmark']
+    testing_features = ['#codelines', '#codespans', '#title_characters', 'average_line_length', 'average_word_length',
+                        'codeline_ratio', 'codespan_ratio', 'contains_language_tag', 'title_contains_questionmark']
+    boolean_features = ['contains_language_tag', 'title_contains_questionmark']
     global_spark = SparkSession.builder.getOrCreate()
     calc_feature_pair_vifs(global_spark, testing_features, boolean_features)
     calc_one_out_vifs(global_spark, testing_features, boolean_features)
