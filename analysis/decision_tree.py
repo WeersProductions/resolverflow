@@ -61,7 +61,7 @@ class ModelResult:
 
 
 def load_feature_data(spark):
-    feature_data = spark.read.parquet("/user/***REMOVED***/StackOverflow/output_stackoverflow.parquet")
+    feature_data = spark.read.parquet("/user/s*******/StackOverflow/output_stackoverflow.parquet")
     feature_data = feature_data.filter(feature_data["is_question"])
     feature_data = feature_data.drop("_Text")
     return feature_data

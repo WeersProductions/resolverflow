@@ -11,7 +11,7 @@ def post_time(spark):
     :return: dataframe
     """
 
-    df = spark.read.parquet('/user/***REMOVED***/StackOverflow/Posts.parquet') \
+    df = spark.read.parquet('/user/s*******/StackOverflow/Posts.parquet') \
         .select(['_Id', '_CreationDate']) \
         .dropna() \
         .withColumn('creation_seconds', to_timestamp(col('_CreationDate')).cast(LongType())) \

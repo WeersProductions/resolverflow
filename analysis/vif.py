@@ -21,7 +21,7 @@ def calc_feature_pair_vifs(spark, features, boolean_features):
         Prints:
             VIF of each pairwise combination
     """
-    feature_data = spark.read.parquet("/user/***REMOVED***/StackOverflow/output_stackoverflow.parquet")
+    feature_data = spark.read.parquet("/user/s*******/StackOverflow/output_stackoverflow.parquet")
     feature_data = feature_data.filter(feature_data["is_question"])
     feature_data = feature_data.select(*features)
 
@@ -62,7 +62,7 @@ def calc_one_out_vifs(spark, features, boolean_features):
         Prints:
             VIF of each 'leave-one-out' combination
     """
-    feature_data = spark.read.parquet("/user/***REMOVED***/StackOverflow/output_stackoverflow.parquet")
+    feature_data = spark.read.parquet("/user/s*******/StackOverflow/output_stackoverflow.parquet")
     feature_data = feature_data.filter(feature_data["is_question"])
 
     for boolean_feature in boolean_features:

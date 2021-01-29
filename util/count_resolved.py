@@ -16,6 +16,6 @@ if __name__ == "__main__":
     """
     spark = SparkSession.builder.getOrCreate()
 
-    df = spark.read.parquet("/user/***REMOVED***/StackOverflow/output_stackoverflow.parquet")
+    df = spark.read.parquet("/user/s*******/StackOverflow/output_stackoverflow.parquet")
     count_total(df)
     count_unresolved(df)

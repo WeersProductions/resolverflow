@@ -8,7 +8,7 @@ def post_is_question_df(spark):
     :return: dataframe
     """
 
-    df = spark.read.parquet('/user/***REMOVED***/StackOverflow/Posts.parquet') \
+    df = spark.read.parquet('/user/s*******/StackOverflow/Posts.parquet') \
         .select(['_Id', '_PostTypeId']) \
         .withColumn('is_question', when(col("_PostTypeId") == 1, True).otherwise(False)) \
         .drop("_PostTypeId")

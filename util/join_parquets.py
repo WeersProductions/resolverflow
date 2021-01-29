@@ -28,7 +28,7 @@ if __name__ == "__main__":
     Run using: spark-submit --master yarn --deploy-mode cluster --conf spark.dynamicAllocation.maxExecutors=10 --conf spark.yarn.maxAppAttempts=1 --name dreamteam util/join_parquets.py --file "StackOverflow/output_stackoverflow.parquet" 2> /dev/null
     """
     spark = SparkSession.builder.getOrCreate()
-    merged = join_parquets(spark, "/user/***REMOVED***/StackOverflow/output_stackoverflow2.parquet", "/user/***REMOVED***/StackOverflow/output_stackoverflow_textformatting_ratiosgood.parquet")
+    merged = join_parquets(spark, "/user/s*******/StackOverflow/output_stackoverflow2.parquet", "/user/s*******/StackOverflow/output_stackoverflow_textformatting_ratiosgood.parquet")
     if len(sys.argv) > 2 and sys.argv[1] == '--file':
         merged.write.mode("overwrite").parquet(sys.argv[2])
     else:

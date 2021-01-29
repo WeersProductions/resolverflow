@@ -141,7 +141,7 @@ def tag_info_df(spark):
                      "flex-machine", "hydra", "keykos"]  # generated from util/platform_list.rb
     platform_list_col = array(*[lit(x) for x in platform_list])
 
-    df = spark.read.parquet("/user/***REMOVED***/StackOverflow/PostHistory.parquet") \
+    df = spark.read.parquet("/user/s*******/StackOverflow/PostHistory.parquet") \
         .select(["_PostId", "_Text", '_PostHistoryTypeId']) \
         .filter(col("_PostHistoryTypeId") == 3) \
         .withColumn("_Tags", expr("substring(_Text, 2, length(_Text) - 2)")) \

@@ -8,7 +8,7 @@ def post_answered_df(spark):
     :return: dataframe
     """
 
-    df = spark.read.parquet('/user/***REMOVED***/StackOverflow/Posts.parquet') \
+    df = spark.read.parquet('/user/s*******/StackOverflow/Posts.parquet') \
         .select(['_Id', '_AcceptedAnswerId']) \
         .withColumn('has_answer', when(col("_AcceptedAnswerId").isNotNull(), True).otherwise(False)) \
         .drop("_AcceptedAnswerId")

@@ -35,11 +35,11 @@ def text_formatting(spark):
     COL = col(COLNAME)
 
     # Data loading
-    post_history_df = spark.read.parquet("/user/***REMOVED***/StackOverflow/PostHistory.parquet") \
+    post_history_df = spark.read.parquet("/user/s*******/StackOverflow/PostHistory.parquet") \
         .select(['_PostId', '_Text', '_PostHistoryTypeId']) \
         .filter(col('_PostHistoryTypeId') == 2) \
         .drop('_PostHistoryTypeId')
-    post_df = spark.read.parquet('/user/***REMOVED***/StackOverflow/Posts.parquet') \
+    post_df = spark.read.parquet('/user/s*******/StackOverflow/Posts.parquet') \
         .select(['_Id', '_PostTypeId']) \
         .filter(col('_PostTypeId') == 1) \
         .drop("_PostTypeId")

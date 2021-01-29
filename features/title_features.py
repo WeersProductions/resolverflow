@@ -15,7 +15,7 @@ def title_features_df(spark):
             #title_characters
         ]
     """
-    df = spark.read.parquet("/user/***REMOVED***/StackOverflow/PostHistory.parquet") \
+    df = spark.read.parquet("/user/s*******/StackOverflow/PostHistory.parquet") \
         .select(["_PostId", "_Text", "_PostHistoryTypeId"]) \
         .filter(col('_PostHistoryTypeId') == 1) \
         .dropna() \

@@ -7,7 +7,7 @@ def post_score(spark):
     :return: dataframe
     """
 
-    df = spark.read.parquet('/user/***REMOVED***/StackOverflow/Posts.parquet') \
+    df = spark.read.parquet('/user/s*******/StackOverflow/Posts.parquet') \
         .select(['_Id', '_Score']) \
         .dropna()
 

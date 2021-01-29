@@ -21,7 +21,7 @@ def create_parquet_files(spark_session):
     Returns:
         dataframe
     """
-    all_features = spark_session.read.parquet('/user/***REMOVED***/StackOverflow/output_stackoverflow.parquet')
+    all_features = spark_session.read.parquet('/user/s*******/StackOverflow/output_stackoverflow.parquet')
     all_features = all_features.filter(all_features['is_question'])
 
     all_results = []
@@ -51,7 +51,7 @@ def create_parquet_files(spark_session):
 
             filename = feature + '_1' if resolved else feature + '_0'
             new_file.write.mode('overwrite') \
-                .parquet('/user/***REMOVED***/StackOverflow/swashbuckler/output_' + filename + '.parquet')
+                .parquet('/user/s*******/StackOverflow/swashbuckler/output_' + filename + '.parquet')
 
     return all_results
 

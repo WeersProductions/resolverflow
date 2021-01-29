@@ -17,7 +17,7 @@ You can find the database schema here: https://meta.stackexchange.com/questions/
 
 ## Badges
 ```
->>> df = spark.read.parquet("/user/***REMOVED***/StackOverflow/Badges.parquet")
+>>> df = spark.read.parquet("/user/s*******/StackOverflow/Badges.parquet")
 >>> df.show()                                                                   
 +------+--------------------+-------+----------------+---------+-------+        
 |_Class|               _Date|    _Id|           _Name|_TagBased|_UserId|
@@ -47,7 +47,7 @@ You can find the database schema here: https://meta.stackexchange.com/questions/
 
 ## Comments
 ```
->>> spark.read.parquet("/user/***REMOVED***/StackOverflow/Comments.parquet").show()
+>>> spark.read.parquet("/user/s*******/StackOverflow/Comments.parquet").show()
 +---------------+--------------------+-------+-------+------+--------------------+----------------+-------+
 |_ContentLicense|       _CreationDate|    _Id|_PostId|_Score|               _Text|_UserDisplayName|_UserId|
 +---------------+--------------------+-------+-------+------+--------------------+----------------+-------+
@@ -77,7 +77,7 @@ You can find the database schema here: https://meta.stackexchange.com/questions/
 
 ## PostHistory
 ```
->>> spark.read.parquet("/user/***REMOVED***/StackOverflow/PostHistory.parquet").show()
+>>> spark.read.parquet("/user/s*******/StackOverflow/PostHistory.parquet").show()
 +--------------------+---------------+--------------------+---------+------------------+--------+--------------------+--------------------+----------------+-------+
 |            _Comment|_ContentLicense|       _CreationDate|      _Id|_PostHistoryTypeId| _PostId|       _RevisionGUID|               _Text|_UserDisplayName|_UserId|
 +--------------------+---------------+--------------------+---------+------------------+--------+--------------------+--------------------+----------------+-------+
@@ -106,7 +106,7 @@ You can find the database schema here: https://meta.stackexchange.com/questions/
 
 ## PostLinks
 ```
->>> spark.read.parquet("/user/***REMOVED***/StackOverflow/PostLinks.parquet").show()
+>>> spark.read.parquet("/user/s*******/StackOverflow/PostLinks.parquet").show()
 +--------------------+---+-----------+-------+--------------+
 |       _CreationDate|_Id|_LinkTypeId|_PostId|_RelatedPostId|
 +--------------------+---+-----------+-------+--------------+
@@ -135,7 +135,7 @@ You can find the database schema here: https://meta.stackexchange.com/questions/
 
 ## Posts
 ```
->>> spark.read.parquet("/user/***REMOVED***/StackOverflow/Posts.parquet").show()
+>>> spark.read.parquet("/user/s*******/StackOverflow/Posts.parquet").show()
 +-----------------+------------+--------------------+-----------+-------------+-------------------+---------------+--------------------+--------------+------+--------------------+--------------------+----------------------+-----------------+-----------------+------------+---------+-----------+------+--------------------+--------------------+----------+
 |_AcceptedAnswerId|_AnswerCount|               _Body|_ClosedDate|_CommentCount|_CommunityOwnedDate|_ContentLicense|       _CreationDate|_FavoriteCount|   _Id|   _LastActivityDate|       _LastEditDate|_LastEditorDisplayName|_LastEditorUserId|_OwnerDisplayName|_OwnerUserId|_ParentId|_PostTypeId|_Score|               _Tags|              _Title|_ViewCount|
 +-----------------+------------+--------------------+-----------+-------------+-------------------+---------------+--------------------+--------------+------+--------------------+--------------------+----------------------+-----------------+-----------------+------------+---------+-----------+------+--------------------+--------------------+----------+
@@ -164,7 +164,7 @@ You can find the database schema here: https://meta.stackexchange.com/questions/
 
 ## Tags
 ```
->>> spark.read.parquet("/user/***REMOVED***/StackOverflow/Tags.parquet").show()
+>>> spark.read.parquet("/user/s*******/StackOverflow/Tags.parquet").show()
 +-------+--------------+---+----------+-----------+
 | _Count|_ExcerptPostId|_Id|  _TagName|_WikiPostId|
 +-------+--------------+---+----------+-----------+
@@ -193,7 +193,7 @@ You can find the database schema here: https://meta.stackexchange.com/questions/
 
 ## Users
 ```
->>> spark.read.parquet("/user/***REMOVED***/StackOverflow/Users.parquet").show()
+>>> spark.read.parquet("/user/s*******/StackOverflow/Users.parquet").show()
 +--------------------+----------+--------------------+--------------------+----------+--------+--------------------+--------------------+--------------------+-----------+--------+------+--------------------+
 |            _AboutMe|_AccountId|       _CreationDate|        _DisplayName|_DownVotes|     _Id|     _LastAccessDate|           _Location|    _ProfileImageUrl|_Reputation|_UpVotes|_Views|         _WebsiteUrl|
 +--------------------+----------+--------------------+--------------------+----------+--------+--------------------+--------------------+--------------------+-----------+--------+------+--------------------+
@@ -222,7 +222,7 @@ You can find the database schema here: https://meta.stackexchange.com/questions/
 
 ## Votes
 ```
->>> spark.read.parquet("/user/***REMOVED***/StackOverflow/Votes.parquet").show()
+>>> spark.read.parquet("/user/s*******/StackOverflow/Votes.parquet").show()
 +-------------+--------------------+---------+--------+-------+-----------+     
 |_BountyAmount|       _CreationDate|      _Id| _PostId|_UserId|_VoteTypeId|
 +-------------+--------------------+---------+--------+-------+-----------+
@@ -253,7 +253,7 @@ You can find the database schema here: https://meta.stackexchange.com/questions/
 ## output_stackoverflow
 Last version: 15 Januari 2021
 ```
->>> spark.read.parquet("/user/***REMOVED***/StackOverflow/output_stackoverflow.parquet").show()
+>>> spark.read.parquet("/user/s*******/StackOverflow/output_stackoverflow.parquet").show()
 +-----+---------------------------+--------------------------+----------+--------------------+----------------------------------+--------------------------+--------------------+------------------+---------------+-------------------+---------------+-------------------+----------------+--------------+---------------------+---------------------+--------+------------+---------------------+-----------+
 |  _Id|title_contains_questionmark|title_number_of_characters|has_answer|number_of_characters|number_of_interpunction_characters|number_of_emoji_characters| interpunction_ratio|       emoji_ratio|number_of_lines|average_line_length|number_of_words|average_word_length|creation_seconds|number_of_tags|contains_language_tag|contains_platform_tag|user_age|posts_amount|answered_posts_amount|is_question|
 +-----+---------------------------+--------------------------+----------+--------------------+----------------------------------+--------------------------+--------------------+------------------+---------------+-------------------+---------------+-------------------+----------------+--------------+---------------------+---------------------+--------+------------+---------------------+-----------+
@@ -283,7 +283,7 @@ Last version: 15 Januari 2021
 ## pair_correlation
 Calculated using `spearman`. This means that we cannot simply rely on the value shown here. We should also verify that the values are monotonic.
 ```
->>> spark.read.parquet("/user/***REMOVED***/StackOverflow/pair_correlation.parquet").show()
+>>> spark.read.parquet("/user/s*******/StackOverflow/pair_correlation.parquet").show()
 +--------------------+--------------------+----------+
 |         correlation|             feature|     label|
 +--------------------+--------------------+----------+
@@ -309,7 +309,7 @@ Calculated using `spearman`. This means that we cannot simply rely on the value 
 ## decision_tree (regression)
 Show the data of the model.
 ```
->>> spark.read.parquet("/user/***REMOVED***/StackOverflow/analysis/regressor_saved.parquet/data").show()
+>>> spark.read.parquet("/user/s*******/StackOverflow/analysis/regressor_saved.parquet/data").show()
 +---+-------------------+-------------------+--------------------+--------------------+---------+----------+--------------------+
 | id|         prediction|           impurity|       impurityStats|                gain|leftChild|rightChild|               split|
 +---+-------------------+-------------------+--------------------+--------------------+---------+----------+--------------------+

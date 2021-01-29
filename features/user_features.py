@@ -4,10 +4,10 @@ from pyspark.sql.types import LongType
 
 
 def user_age_df(spark):
-    df_posts = spark.read.parquet('/user/***REMOVED***/StackOverflow/Posts.parquet') \
+    df_posts = spark.read.parquet('/user/s*******/StackOverflow/Posts.parquet') \
         .select(['_Id', '_CreationDate', '_OwnerUserId']) \
         .withColumnRenamed('_CreationDate', '_PostCreationDate')
-    df_users = spark.read.parquet('/user/***REMOVED***/StackOverflow/Users.parquet') \
+    df_users = spark.read.parquet('/user/s*******/StackOverflow/Users.parquet') \
         .select(['_Id', '_CreationDate']) \
         .withColumnRenamed('_CreationDate', '_UserCreationDate') \
         .withColumnRenamed('_Id', 'UserId')
@@ -24,7 +24,7 @@ def user_question_amount(spark):
     """
     Calculate the amount of questions a user has made and how many have been answered before a post is created.
     """
-    df_posts = spark.read.parquet('/user/***REMOVED***/StackOverflow/Posts.parquet') \
+    df_posts = spark.read.parquet('/user/s*******/StackOverflow/Posts.parquet') \
         .select(['_Id', '_OwnerUserId', '_CreationDate', '_AcceptedAnswerId', '_PostTypeId']) \
         .where(col('_PostTypeId') == 1) \
         .withColumn('CreationTimestamp', to_timestamp(col('_CreationDate')).cast(LongType())) \

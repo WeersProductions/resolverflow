@@ -28,7 +28,7 @@ def filter_outliers(dataframe, exclude_columns):
 
 
 def load_feature_data(spark):
-    feature_data = spark.read.parquet("/user/***REMOVED***/StackOverflow/output_stackoverflow.parquet")
+    feature_data = spark.read.parquet("/user/s*******/StackOverflow/output_stackoverflow.parquet")
     feature_data = feature_data.filter(feature_data["is_question"])
     feature_data = filter_outliers(feature_data, ["_Id"])
     return feature_data
